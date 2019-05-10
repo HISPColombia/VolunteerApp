@@ -1,3 +1,5 @@
 # Volunteer App
-Helder Castrillón 
-joaquin Urbano
+Desarrolladores: 
+
+-Helder Castrillón 
+-Joaquin Urbano
