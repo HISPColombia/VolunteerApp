@@ -1,5 +1,2 @@
-# Volunteer App
-Desarrolladores: 
-
--Helder Castrillón 
--Joaquin Urbano
+# SharingSettingver2
+App to Improve experience of setting share options in DHIS object

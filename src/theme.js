@@ -44,6 +44,12 @@ const theme = {
     settingOptions:{
         icon:grey600,
         title:grey400        
+    },
+    volunteerForm:{
+        textBox:{            
+            maxWidth:255,
+            margin:10
+        }
     }
 };
 
@@ -52,7 +58,7 @@ const muiTheme = getMuiTheme(theme);
 export default Object.assign({}, muiTheme, {
     forms: {
         minWidth: 350,
-        maxWidth: 750,
+        maxWidth: 750
     },
     formInput: {
         fontWeight: 100,
