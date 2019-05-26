@@ -5,6 +5,11 @@ import TextField from 'material-ui/TextField';
 import theme from '../theme'
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
+import DHIS2Api from './DHIS2API';
+
+const localstyle={
+    divForm:{overflowY: 'auto', height:700}
+}
 class EditOu extends React.Component {
     constructor(props) {
         super(props)
@@ -12,18 +17,35 @@ class EditOu extends React.Component {
             volunteer: {
                 id:"",
                 firstName:"",
-                fastName:""
-            }
+                fastName:"",
+                name:"",
+                parent:{id:""},
+                organisationUnitGroups:[{id:""}]                
+            },
+            OUList:[],
+            OUGList:[]        
         }
     }
+    async getParthers(){
+         //get list of OU leve 6
+         const D2API = new DHIS2Api(this.props.d2);
+         const OUList=await D2API.getOrgUnit("&filter=level:eq:6");
+         this.setState({OUList});
+    }
+    async getSupervisor(){
+        const D2API = new DHIS2Api(this.props.d2);
+        const OUGList=await D2API.getOrgUnitGroups();
+        this.setState({OUGList});
+   }
     componentDidMount(){
         let volunteer=this.props.volunteer
         let dateOpening=new Date(volunteer.openingDate)
         volunteer.openingDate=dateOpening;
-        console.log(volunteer.openingDate)
         this.setState({
             volunteer
         })  
+        this.getParthers();
+        this.getSupervisor();
     }
     handleSelectLanguage(event, index, value) {
         let volunteer=this.props.volunteer
@@ -32,17 +54,33 @@ class EditOu extends React.Component {
     }
     handleSelectSupervisor(event, index, value) {
         let volunteer=this.props.volunteer
-        volunteer["Supervisor"]=value
+        volunteer["organisationUnitGroups"]=[{id:value}]
         this.setState({volunteer});
     }
-    handleSelectPather(event, index, value) {
+    handleSelectParent(event, index, value) {
         let volunteer=this.props.volunteer
-        volunteer["Pather"]=value
+        volunteer["parent"]={id:value}
         this.setState({volunteer});
+    }
+    renderParthers(){
+        return this.state.OUList.map(parther=>{         
+            return(
+                <MenuItem value={parther.id} primaryText={parther.name} />
+            )
+        })
+    }
+    renderSupervisor(){
+        return this.state.OUGList.map(group=>{         
+            return(
+                <MenuItem value={group.id} primaryText={group.name} />
+            )
+        })
     }
     render(){
         const {d2}= this.props;
-        return(<div>
+        const fullname=this.state.volunteer.name;
+        const names=fullname.split("-")
+        return(<div style={localstyle.divForm}>
                <TextField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_ID")}
                 value={this.state.volunteer.code}
@@ -51,21 +89,27 @@ class EditOu extends React.Component {
                 <br/>
                 <TextField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FISTNAME")}
-                value={this.state.volunteer.name}
+                value={names[1]}
                 style={theme.volunteerForm.textBox}
                 /> 
-                 <TextField
+                <TextField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LASTNAME")}
-                value={this.state.volunteer.name}
+                value={names[2]}
                 style={theme.volunteerForm.textBox}
+                />
+                <TextField
+                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FULLNAME")}
+                value={fullname}
+                style={theme.volunteerForm.textBox}
+                disabled={true}
                 />   
-                 <SelectField
+                <SelectField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LANGUAGE")}
                 value={this.state.volunteer.Language}
-                style={theme.volunteerForm.textBox}
-                onChange={this.handleSelectLanguage.bind(this)}
+                style={theme.volunteerForm.selectField}
+                onChange={this.handleSelectLanguage.bind(this)
+                }
                 >
-                    <MenuItem value={1} primaryText="Spanish" />
                     <MenuItem value={2} primaryText="English" />
                     <MenuItem value={3} primaryText="Burmese" />
                     <MenuItem value={4} primaryText="Chinese" />
@@ -87,39 +131,33 @@ class EditOu extends React.Component {
                 style={theme.volunteerForm.textBox}
                 type="password"
                 /> 
-            <DatePicker 
-                hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
-                value={this.state.volunteer.openingDate}
-                style={theme.volunteerForm.textBox}
-            
-            />
-            <DatePicker 
-                hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CLOSINGDATE")}
-                value={this.state.volunteer.openingDate}
-                style={theme.volunteerForm.textBox}
-            
-            />
+                <DatePicker 
+                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
+                    value={this.state.volunteer.openingDate}
+                    style={theme.volunteerForm.textBox}
+                
+                />
+                <DatePicker 
+                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CLOSINGDATE")}
+                    value={this.state.volunteer.openingDate}
+                    style={theme.volunteerForm.textBox}
+                
+                />
                 <SelectField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
-                value={this.state.volunteer.Supervidor}
+                value={this.state.volunteer.organisationUnitGroups[0].id}
                 style={theme.volunteerForm.textBox}
                 onChange={this.handleSelectSupervisor.bind(this)}
                 >
-                    <MenuItem value={1} primaryText="Supervidor1" />
-                    <MenuItem value={2} primaryText="Supervidor2" />
-                    <MenuItem value={3} primaryText="Supervidor3" />
-                    <MenuItem value={4} primaryText="Supervidor4" />
+                    {this.renderSupervisor()}
                 </SelectField>
                 <SelectField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PATHER")}
-                value={this.state.volunteer.Pather}
+                value={this.state.volunteer.parent.id}
                 style={theme.volunteerForm.textBox}
-                onChange={this.handleSelectPather.bind(this)}
+                onChange={this.handleSelectParent.bind(this)}
                 >
-                    <MenuItem value={1} primaryText="Pather1" />
-                    <MenuItem value={2} primaryText="Pather2" />
-                    <MenuItem value={3} primaryText="Pather3" />
-                    <MenuItem value={4} primaryText="Pather4" />
+                    {this.renderParthers()}
                 </SelectField>
               </div>)
     }

@@ -15,12 +15,17 @@ import {
 
 //My Components
 import EditOu from './EditOu';
+import DHIS2Api from './DHIS2API';
 
 
 const localStyle = {
     Main: {
         marginTop: 48
+    },
+    Dialog:{
+        maxWidth:900
     }
+
 }
 class Main extends Component {
     constructor(props) {
@@ -31,29 +36,10 @@ class Main extends Component {
             OUSelected:null
         }
     }
-    async getResourceSelected(resource,param) {
-        const d2 = this.props.d2;
-        const api = d2.Api.getApi();
-        let result = {};
-        try {
-            let res = await api.get('/' + resource+"?"+param);
-            if (res.hasOwnProperty(resource)) {
-                return res;
-            }
-        }
-        catch (e) {
-            console.error('Could not access to API Resource');
-        }
-        return result;
-    }
-    getOrgUnit(){
-        const resource="organisationUnits"
-        const param="fields=id,code,level,name,openingDate,closedDate,phoneNumber,organisationUnitGroups"
-        this.getResourceSelected(resource,param).then(res =>{
-            this.setState(
-                {OUList:res[resource]}
-            )
-        })
+    async getOrgUnit(){
+        const D2API = new DHIS2Api(this.props.d2);
+        const OUList=await D2API.getOrgUnit("&filter=level:eq:7");
+        this.setState({OUList});
     }
 
     handleOpen(OUSelected){
@@ -85,6 +71,7 @@ class Main extends Component {
               modal={false}
               open={this.state.open}
               onRequestClose={()=>this.handleClose()}
+              style={localStyle.Dialog}
             >
                 <EditOu d2={this.props.d2} volunteer={this.state.OUSelected} />             
             </Dialog>
@@ -111,6 +98,7 @@ class Main extends Component {
         
     }
     render() {
+
         return (
             <div style={localStyle.Main}>
                 <RaisedButton label="Get OrgUnit" onClick={()=>this.getOrgUnit()} />
