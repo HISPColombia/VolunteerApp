@@ -4,7 +4,6 @@ import headerBarStore$ from 'd2-ui/lib/app-header/headerBar.store';
 import withStateFrom from 'd2-ui/lib/component-helpers/withStateFrom';
 
 
-
 //Material Components
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import appTheme from '../theme';
