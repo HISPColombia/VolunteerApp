@@ -31,8 +31,6 @@ class DHIS2Api{
             return(res[resource])
         })
     }
-
-
 }
 
 export default DHIS2Api;

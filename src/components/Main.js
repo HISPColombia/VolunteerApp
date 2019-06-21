@@ -12,7 +12,6 @@ import {
     TableRowColumn,
 } from 'material-ui/Table';
 
-
 //My Components
 import EditOu from './EditOu';
 import DHIS2Api from './DHIS2API';

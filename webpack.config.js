@@ -15,7 +15,7 @@ try {
     console.warn(`\nWARNING! Failed to load DHIS config:`, e.message);
     dhisConfig = {
         baseUrl: 'https://new-dev.scpr-mm-mal.org',
-        authorization: 'Basic Y2hlbGRlcjpEZXNhQDQzNjE=', // admin:district
+        authorization: 'Basic Y2hlbGRlcjpEZXNhQDQzNjE=',
     };
 }
 
