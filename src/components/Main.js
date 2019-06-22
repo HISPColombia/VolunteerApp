@@ -51,7 +51,7 @@ class Main extends Component {
     
       handleClose(){
         this.setState({open: false});
-      };
+      };handleOpen
 
     renderDialogEditOU(){
         const actions = [
@@ -101,6 +101,7 @@ class Main extends Component {
         return (
             <div style={localStyle.Main}>
                 <RaisedButton label="Get OrgUnit" onClick={()=>this.getOrgUnit()} />
+                <RaisedButton label="Create Volunteer" onClick={()=>this.handleOpen()} />
                 <br />
                 <Table>
                     <TableHeader displaySelectAll={false}>>

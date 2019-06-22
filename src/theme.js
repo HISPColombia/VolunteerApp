@@ -50,6 +50,10 @@ const theme = {
             maxWidth:255,
             margin:10
         },
+        textBoxAuto:{
+            maxWidth:520,
+            margin:10
+        },
         selectField:{
             marginTop:20,          
             maxWidth:255,
