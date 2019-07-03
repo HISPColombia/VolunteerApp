@@ -14,7 +14,7 @@ try {
     // Failed to load config file - use default config
     console.warn(`\nWARNING! Failed to load DHIS config:`, e.message);
     dhisConfig = {
-        baseUrl: 'https://new-dev.scpr-mm-mal.org',
+        baseUrl: 'https://new-dev.scpr-mm-mal.org',//'http://localhost:8080/dhis',//
         authorization: 'Basic Y2hlbGRlcjpEZXNhQDQzNjE=',
     };
 }

@@ -31,6 +31,7 @@ class Main extends Component {
         super(props)
         this.state = {
             OUList:[],
+            UsersList:[],
             open: false,
             OUSelected:null
         }
@@ -40,39 +41,52 @@ class Main extends Component {
         const OUList=await D2API.getOrgUnit("&filter=level:eq:7");
         this.setState({OUList});
     }
+    async getUsers(){
+        const D2API = new DHIS2Api(this.props.d2);
+        const UsersList=await D2API.getUsers("&paging=false");
+        this.setState({UsersList});
+    }
 
     handleOpen(OUSelected){
-        this.setState(
-            {
-                open: true,
-                OUSelected
-            });
-      };
+       
+        if(OUSelected!=undefined)
+            this.setState(
+                {
+                    open: true,
+                    OUSelected,
+                    userSelected:this.findUser(OUSelected.code)
+                });
+        else
+            this.setState(
+                {
+                    OUSelected:undefined,
+                    open: true
+                });
+      };  
+      //Buscar que el usuario exista en la lista  
+      findUser(userCode){
+        return this.state.UsersList.find(user=>{           
+            if(user.userCredentials.username==userCode){
+                return user;
+            }                
+        })
+      }
     
       handleClose(){
         this.setState({open: false});
-      };handleOpen
+      };
 
     renderDialogEditOU(){
-        const actions = [
-            <RaisedButton
-              label="Ok"
-              primary={true}
-              keyboardFocused={true}
-              onClick={()=>this.handleClose()}
-            />,
-          ];
         return(
             <div>
             <Dialog
               title={this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT")}
-              actions={actions}
               modal={false}
               open={this.state.open}
               onRequestClose={()=>this.handleClose()}
               style={localStyle.Dialog}
             >
-                <EditOu d2={this.props.d2} volunteer={this.state.OUSelected} />             
+                <EditOu d2={this.props.d2} volunterUser={this.state.userSelected} volunteerOU={this.state.OUSelected} mode={this.state.OUSelected==undefined?"new":"edit"} handleClose={this.handleClose.bind(this)}/>             
             </Dialog>
           </div>
         )
@@ -80,6 +94,7 @@ class Main extends Component {
     }
     renderOUTable(){
         const OUList=this.state.OUList
+        let x=0;
         return OUList.map(ou=>{
             return(
                 <TableRow key={ou.id}>
@@ -96,11 +111,19 @@ class Main extends Component {
         })
         
     }
+    componentDidMount(){
+        this.getOrgUnit();
+        this.getUsers();      
+    }
+    componentDidUpdate(prevProps,prevState){
+        ///testing
+       // if(prevState.OUList.length!=this.state.OUList.length)
+        //    this.handleOpen(this.state.OUList[0]);
+    }
     render() {
 
         return (
             <div style={localStyle.Main}>
-                <RaisedButton label="Get OrgUnit" onClick={()=>this.getOrgUnit()} />
                 <RaisedButton label="Create Volunteer" onClick={()=>this.handleOpen()} />
                 <br />
                 <Table>

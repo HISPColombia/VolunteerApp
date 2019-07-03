@@ -17,9 +17,22 @@ class DHIS2Api{
         }
         return result;
     }
+    async setResourceSelected(resource,payload) {
+        const api = this.d2.Api.getApi();
+        let result = {};
+        try {
+            let res = await api.post('/' + resource,payload);
+            return res;            
+        }
+        catch (e) {
+            console.error('Could not access to API Resource');
+        }
+        return result;
+    }
+    //get methods
     async getOrgUnit(filter){
         const resource="organisationUnits"
-        const param="fields=id,parent,code,level,name,openingDate,closedDate,phoneNumber,organisationUnitGroups"+(filter==undefined?"":filter)
+        const param="fields=id,parent,code,level,name,openingDate,closedDate,phoneNumber,email,organisationUnitGroups"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })
@@ -29,6 +42,35 @@ class DHIS2Api{
         const param="fields=organisationUnitGroups[id,name]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
+        })
+    }
+    async getUsers(filter){
+        // code en la Unidad Organizativa igual que el name del usuario
+        // name de la Unidad ORganizativa es igual que firtName, Surname del usuario
+        const resource="users"
+        const param="fields=name,firstName,surname,phoneNumber,userCredentials[username]"+(filter==undefined?"":filter)
+        return await this.getResourceSelected(resource,param).then(res =>{           
+            return(res[resource])
+        })
+    }
+    async getLangUsers(filter){
+        const resource="userSettings/keyUiLocale"
+        const param="user="+(filter==undefined?"":filter)
+        return await this.getResourceSelected(resource,param).then(res =>{  
+           return("en")//return(res)
+        })
+    }
+    //set methods
+    async setOrgUnit(payload){
+        const resource="organisationUnits"
+        return await this.setResourceSelected(resource,payload).then(res =>{           
+            return(res)
+        })
+    }
+    async setUser(payload){
+        const resource="users"
+        return await this.setResourceSelected(resource,payload).then(res =>{           
+            return(res)
         })
     }
 }
