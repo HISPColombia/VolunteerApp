@@ -9,9 +9,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import appTheme from '../theme';
 import Main from './Main'
 
-
-
-
 const HeaderBar = withStateFrom(headerBarStore$, HeaderBarComponent);
 let currentSection;
 let sidebarRef;
