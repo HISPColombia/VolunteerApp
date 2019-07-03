@@ -2,164 +2,311 @@
 import React from 'react';
 import DatePicker from 'material-ui/DatePicker';
 import TextField from 'material-ui/TextField';
+import RaisedButton from 'material-ui/RaisedButton';
 import theme from '../theme'
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import DHIS2Api from './DHIS2API';
+import SearchTextBox from './SearchTextBox';
+import setting from '../setting.json'
 
-const localstyle={
-    divForm:{overflowY: 'auto', height:700}
+const localstyle = {
+    divForm: { overflowY: 'auto', height: 600 },
+    buttonsPanel: { paddingTop: 40, textAlign: "center" },
+    buttons: { margin: 10 }
 }
 class EditOu extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            volunteer: {
-                id:"",
-                firstName:"",
-                fastName:"",
-                name:"",
-                parent:{id:""},
-                organisationUnitGroups:[{id:""}]                
-            },
-            OUList:[],
-            OUGList:[]        
+            volunteer: {},
+            OUList: [],
+            OUGList: []
         }
     }
-    async getParthers(){
-         //get list of OU leve 6
-         const D2API = new DHIS2Api(this.props.d2);
-         const OUList=await D2API.getOrgUnit("&filter=level:eq:6");
-         this.setState({OUList});
-    }
-    async getSupervisor(){
+    async getParthers() {
+        //get list of OU leve 6
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList=await D2API.getOrgUnitGroups();
-        this.setState({OUGList});
-   }
-    componentDidMount(){
-        let volunteer=this.props.volunteer
-        let dateOpening=new Date(volunteer.openingDate)
-        volunteer.openingDate=dateOpening;
-        this.setState({
-            volunteer
-        })  
+        const OUList = await D2API.getOrgUnit("&filter=level:eq:6&paging=false");
+        this.setState({ OUList });
+    }
+    async searchParents(value) {
+        //get list of OU leve 6
+        const D2API = new DHIS2Api(this.props.d2);
+        const OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:like:"+value);
+        this.setState({ OUList });
+    }
+    async getSupervisor() {
+        const D2API = new DHIS2Api(this.props.d2);
+        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet);
+        this.setState({ OUGList: OUGList[0].organisationUnitGroups });
+    }
+    async getLanguage() {
+        const D2API = new DHIS2Api(this.props.d2);
+        const language = await D2API.getLangUsers(this.props.volunteerOU.code);
+        let { volunteer } = this.state;
+        volunteer.language = language;
+        this.setState({ volunteer });
+
+    }
+    async setVolunteer() {
+        const OU = {
+            code: this.state.volunteer.code,
+            contactPerson: this.state.volunteer.firstname + " " + this.state.volunteer.lastname,
+            coordinates: "[-15,60]",
+            email: this.state.volunteer.email,
+            featureType: "POINT",
+            name: this.state.volunteer.firstname + "-" + this.state.volunteer.lastname,
+            openingDate: + this.state.volunteer.openingDate.getFullYear() + "-" + (this.state.volunteer.openingDate.getMonth() + 1) + "-" + this.state.volunteer.openingDate.getDate(),
+
+            parent: { id: this.state.volunteer.parent },
+            phoneNumber: this.state.volunteer.phoneNumber,
+            shortName: this.state.volunteer.firstname + "-" + this.state.volunteer.lastname
+        }
+        const User = {
+            attributeValues: [],
+            dataViewOrganisationUnits: [{ id: "CWNiOc88xor" }],
+            email: this.state.volunteer.email,
+            firstName: this.state.volunteer.firstname,
+            organisationUnits: [{ id: "CWNiOc88xor" }],
+            surname: this.state.volunteer.lastname,
+            userCredentials: {
+                catDimensionConstraints: [],
+                cogsDimensionConstraints: [],
+                externalAuth: false,
+                password: this.state.volunteer.password,
+                userInfo: { id: "NYPhIsN7giM" },
+                userRoles: [{ id: "tUHgJMmGppY" }],
+                username: this.state.volunteer.code,
+                userGroups: [{ id: "XCo6cPPctTl" }]
+
+            }
+        }
+        const D2API = new DHIS2Api(this.props.d2);
+        const respOUSaved = await D2API.setOrgUnit(OU);
+        const respUserSaved = await D2API.setUser(User);
+        this.props.handleClose();
+
+    }
+    componentDidMount() {
+        if (this.props.mode == "edit") {
+            this.setValueForm();
+            this.setState({ disabled: true });
+            this.getLanguage();
+        }
         this.getParthers();
         this.getSupervisor();
+        ;
+
     }
-    handleSelectLanguage(event, index, value) {
-        let volunteer=this.props.volunteer
-        volunteer["Language"]=value
-        this.setState({volunteer});
+    handleSetValueForm(key, value, event, index) {
+        let volunteer = this.state.volunteer
+        volunteer[key] = value
+        this.setState({ volunteer });
     }
-    handleSelectSupervisor(event, index, value) {
-        let volunteer=this.props.volunteer
-        volunteer["organisationUnitGroups"]=[{id:value}]
-        this.setState({volunteer});
+    handleParent(selected){
+        console.log(selected)
     }
-    handleSelectParent(event, index, value) {
-        let volunteer=this.props.volunteer
-        volunteer["parent"]={id:value}
-        this.setState({volunteer});
-    }
-    renderParthers(){
-        return this.state.OUList.map(parther=>{         
-            return(
-                <MenuItem value={parther.id} primaryText={parther.name} />
+    renderParthers() {
+        return this.state.OUList.map(parent => {
+            return (
+                <MenuItem key={parent.id} value={parent.id} primaryText={parent.name} />
             )
         })
     }
-    renderSupervisor(){
-        return this.state.OUGList.map(group=>{         
-            return(
-                <MenuItem value={group.id} primaryText={group.name} />
+    renderSupervisor() {
+        return this.state.OUGList.map(group => {
+            return (
+                <MenuItem key={group.id} value={group.id} primaryText={group.name} />
             )
         })
     }
-    render(){
-        const {d2}= this.props;
-        const fullname=this.state.volunteer.name;
-        const names=fullname.split("-")
-        return(<div style={localstyle.divForm}>
-               <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_ID")}
-                value={this.state.volunteer.code}
-                style={theme.volunteerForm.textBox}
-                />
-                <br/>
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FISTNAME")}
-                value={names[1]}
-                style={theme.volunteerForm.textBox}
-                /> 
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LASTNAME")}
-                value={names[2]}
-                style={theme.volunteerForm.textBox}
-                />
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FULLNAME")}
-                value={fullname}
-                style={theme.volunteerForm.textBox}
-                disabled={true}
-                />   
+    setValueForm() {
+        const code = this.props.volunteerOU.code;
+        const fullname = this.props.volunteerOU.name;
+        const firstname = fullname.split("-")[0];
+        const lastname = fullname.split("-")[1];
+        const openingDate = new Date(this.props.volunteerOU.openingDate);
+        const closedDate = (this.props.volunteerOU.closedDate == undefined ? "" : new Date(this.props.volunteerOU.closedDate));
+        const parent = this.props.volunteerOU.parent.id;
+        const supervisor = this.props.volunteerOU.organisationUnitGroups[0].id;
+        const village = ""
+        const villagegps = "";
+        const password = "";
+        const repeatpassword = "";
+        const { language } = this.state;
+        var email = this.props.volunteerOU.email == undefined ? "" : this.props.volunteerOU.email;
+        var phoneNumber = this.props.volunteerOU.phoneNumber == undefined ? "" : this.props.volunteerOU.phoneNumber;
+        if (this.props.volunterUser != undefined) {
+            email = this.props.volunterUser.email;
+            phoneNumber = this.props.volunterUser.phoneNumber;
+        }
+        let volunteer = {
+            code,
+            supervisor,
+            parent,
+            fullname,
+            firstname,
+            lastname,
+            village,
+            villagegps,
+            openingDate,
+            closedDate,
+            email,
+            phoneNumber,
+            password,
+            repeatpassword,
+            language,
+        }
+        this.setState({ volunteer });
+
+    }
+    render() {
+        const { d2 } = this.props;
+        return (<div>
+            <div style={localstyle.divForm}>
                 <SelectField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LANGUAGE")}
-                value={this.state.volunteer.Language}
-                style={theme.volunteerForm.selectField}
-                onChange={this.handleSelectLanguage.bind(this)
-                }
-                >
-                    <MenuItem value={2} primaryText="English" />
-                    <MenuItem value={3} primaryText="Burmese" />
-                    <MenuItem value={4} primaryText="Chinese" />
-                </SelectField>
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PHONE")}
-                value={this.state.volunteer.phone}
-                style={theme.volunteerForm.textBox}
-                />  
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PASSWORD")}
-                value={this.state.volunteer.password}
-                style={theme.volunteerForm.textBox}
-                type="password"
-                /> 
-                <TextField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_REPEATPASSWORD")}
-                value={this.state.volunteer.repeatpassword}
-                style={theme.volunteerForm.textBox}
-                type="password"
-                /> 
-                <DatePicker 
-                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
-                    value={this.state.volunteer.openingDate}
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
+                    value={this.state.volunteer.supervisor}
                     style={theme.volunteerForm.textBox}
-                
-                />
-                <DatePicker 
-                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CLOSINGDATE")}
-                    value={this.state.volunteer.openingDate}
-                    style={theme.volunteerForm.textBox}
-                
-                />
-                <SelectField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
-                value={this.state.volunteer.organisationUnitGroups[0].id}
-                style={theme.volunteerForm.textBox}
-                onChange={this.handleSelectSupervisor.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("supervisor", value, event, index)}
+                    disabled={this.state.disabled}
                 >
                     {this.renderSupervisor()}
                 </SelectField>
+                <SearchTextBox 
+                    source={this.searchParents.bind(this)} 
+                    title={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")} 
+                    callBackSelected={this.handleParent.bind(this)} 
+                    color={theme.settingOptions.icon}
+                    showValueSelected={false}  
+                    disabled={false}        
+                />
                 <SelectField
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PATHER")}
-                value={this.state.volunteer.parent.id}
-                style={theme.volunteerForm.textBox}
-                onChange={this.handleSelectParent.bind(this)}
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")}
+                    value={this.state.volunteer.parent}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, index, value) => this.handleSetValueForm("parent", value, event, index)}
+                    disabled={this.state.disabled}
                 >
                     {this.renderParthers()}
                 </SelectField>
-              </div>)
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CODE")}
+                    value={this.state.volunteer.code}
+                    style={theme.volunteerForm.textBoxAuto}
+                    disabled={this.state.disabled}
+                    fullWidth={true}
+                />
+                <br />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FISTNAME")}
+                    value={this.state.volunteer.firstname}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("firstname", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LASTNAME")}
+                    value={this.state.volunteer.lastname}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("lastname", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FULLNAME")}
+                    value={this.state.volunteer.fullname}
+                    style={theme.volunteerForm.textBoxAuto}
+                    disabled={this.state.disabled}
+                    fullWidth={true}
+                />
+                <br />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_VILLAGE")}
+                    value={this.state.village}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("village", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_VILLAGEGPS")}
+                    value={this.state.villagegps}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("villagegps", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PHONE")}
+                    value={this.state.volunteer.phoneNumber}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("phoneNumber", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_EMAIL")}
+                    value={this.state.volunteer.email}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("email", value, event)}
+                />
+                <DatePicker
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
+                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
+                    value={this.state.volunteer.openingDate}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("openingDate", value, event)}
+
+                />
+                <DatePicker
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CLOSEDDATE")}
+                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_OPENINGDATE")}
+                    value={this.state.volunteer.closedDate}
+                    style={theme.volunteerForm.textBox}
+                    onChange={(event, value) => this.handleSetValueForm("closedDate", value, event)}
+
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PASSWORD")}
+                    value={this.state.volunteer.password}
+                    style={theme.volunteerForm.textBox}
+                    type="password"
+                    onChange={(event, value) => this.handleSetValueForm("password", value, event)}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_REPEATPASSWORD")}
+                    value={this.state.volunteer.repeatpassword}
+                    style={theme.volunteerForm.textBox}
+                    type="password"
+                    onChange={(event, value) => this.handleSetValueForm("repeatpassword", value, event)}
+                />
+                <SelectField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_LANGUAGE")}
+                    value={this.state.volunteer.language}
+                    style={theme.volunteerForm.selectField}
+                    onChange={(event, value) => this.handleSetValueForm("language", value, event)}
+                >
+                    <MenuItem value={"en"} primaryText="English" />
+                    <MenuItem value={"my"} primaryText="Burmese" />
+                    <MenuItem value={"zh"} primaryText="Chinese" />
+                </SelectField>
+
+            </div>
+            <div style={localstyle.buttonsPanel}>
+                <RaisedButton
+                    label="Cancel"
+                    primary={true}
+                    keyboardFocused={true}
+                    style={localstyle.buttons}
+                    onClick={() => this.props.handleClose()}
+
+                />
+
+                <RaisedButton
+                    label="Save"
+                    primary={true}
+                    keyboardFocused={true}
+                    style={localstyle.buttons}
+                    onClick={() => this.setVolunteer()}
+                />
+            </div>
+
+        </div>
+        )
     }
 }
+
 export default EditOu;
