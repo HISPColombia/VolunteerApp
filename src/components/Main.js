@@ -58,6 +58,7 @@ class Main extends Component {
             },
             OUList: [],
             OUGList: [],
+            UsersList:[],
             openEditOu: false,
             openSetting: false,
             OUSelected: null,
@@ -77,7 +78,19 @@ class Main extends Component {
         const OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter);
         this.setState({ OUList });
     }
-
+    async getUsers(){
+        const D2API = new DHIS2Api(this.props.d2);
+        const UsersList=await D2API.getUsers("&paging=false");
+        this.setState({UsersList});
+    }
+      //Buscar que el usuario exista en la lista  
+     findUser(userCode){
+        return this.state.UsersList.find(user=>{           
+            if(user.userCredentials.username==userCode){
+                return user;
+            }                
+        })
+      }
     handleOpenVolunteer(OUSelected) {
         this.setState(
             {
