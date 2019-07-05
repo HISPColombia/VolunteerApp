@@ -68,7 +68,7 @@ class Main extends Component {
 
     async getSupervisors() {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=level:eq:6");
+        const OUGList = await D2API.getOrgUnitGroups();
         this.setState({ OUGList });
     }
 
@@ -109,6 +109,8 @@ class Main extends Component {
         this.setState({ volunteer });
         this.getOrgUnit(value);
         let disabledSetting=false;
+        const OUGSelected = value;
+        this.setState({OUGSelected})
         this.setState({disabledSetting})
     }
 
@@ -165,7 +167,7 @@ class Main extends Component {
                     onRequestClose={() => this.handleCloseSetting()}
                     style={localStyle.Dialog}
                 >
-                    <SettingSr d2={this.props.d2} volunteer={this.state.OUGSelected} />
+                    <SettingSr d2={this.props.d2} OUGSelected={this.state.OUGSelected} />
                 </Dialog>
             </div>
         )

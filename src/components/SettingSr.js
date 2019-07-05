@@ -10,26 +10,36 @@ class SettingSr extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            supervisor: {
+            orgUnitGroup: {
                 id: "",
-                name: "",
+                name:"",
+                user:{
+                    id:""
+                },
+                organisationUnits:[{ id: "" }],
+                groupSets:[{ id: "" }],
             },
+            OUG: [],
+            disabledSetting: true
         }
     }
-    async getSupervisor() {
+    async getSupervisor(filter) {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups();
-        this.setState({ OUGList });
+        const OUG = await D2API.getOrgUnitGroups("/" + filter);
+        //console.log(JSON.stringify(OUG));
+        this.setState({ OUG });
     }
     render() {
         const {d2}= this.props;
+        const idSubRecipient=this.props.OUGSelected;
+        this.getSupervisor(idSubRecipient);
         return (
             <div style={localstyle.divForm}>
             <TextField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_SUBRECIPIENT_ID")}
                 style={theme.volunteerForm.textBox}
-                disabled={true}
-
+                value={idSubRecipient}
+                disabled={true}              
             />
             <br/>
             <TextField
@@ -50,6 +60,7 @@ class SettingSr extends React.Component {
                 /> 
                 <TextField
                 floatingLabelText={d2.i18n.getTranslation("LABEL_UG_USER_ID")}
+                value={this.state.OUGList}
                 style={theme.volunteerForm.textBox}
                 /> 
                 <TextField
