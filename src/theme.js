@@ -45,9 +45,13 @@ const theme = {
         icon:grey600,
         title:grey400        
     },
-    volunteerForm:{
+    volunteerForm:{ 
         textBox:{            
             maxWidth:255,
+            margin:10
+        },
+        textBoxAuto:{
+            maxWidth:520,
             margin:10
         },
         selectField:{
