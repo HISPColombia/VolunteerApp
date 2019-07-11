@@ -23,7 +23,9 @@ import PersonDisabled from 'material-ui/svg-icons/content/block';
 import HelpIconMenu from 'material-ui/svg-icons/action/help-outline';
 import FlagStatus from 'material-ui/svg-icons/av/fiber-manual-record';
 import SelectField from 'material-ui/SelectField';
-import theme from '../theme'
+import theme from '../theme';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
 
 
 //My Components
@@ -37,6 +39,12 @@ const localStyle = {
     },
     Dialog: {
         maxWidth: 900
+    },
+    fabButom: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
     }
 
 }
@@ -54,7 +62,7 @@ class Main extends Component {
                 name: "",
                 parent: { id: "" },
                 orgUnitGroups: [{ id: "" }],
-                lastUpdated:""
+                lastUpdated: ""
             },
             OUList: [],
             OUGList: [],
@@ -108,10 +116,10 @@ class Main extends Component {
         volunteer["orgUnitGroups"] = [{ id: value }]
         this.setState({ volunteer });
         this.getOrgUnit(value);
-        let disabledSetting=false;
+        let disabledSetting = false;
         const OUGSelected = value;
-        this.setState({OUGSelected})
-        this.setState({disabledSetting})
+        this.setState({ OUGSelected })
+        this.setState({ disabledSetting })
     }
 
     renderSupervisor() {
@@ -180,11 +188,11 @@ class Main extends Component {
         return OUList.map(ou => {
             return (
                 <TableRow className="col-hide"> key={ou.id}>
-                    <TableRowColumn className="colIni">{ou.name}</TableRowColumn> 
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
+                    <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
                     <TableRowColumn className="colEnd">{ou.lastUpdated}</TableRowColumn>
                     <TableRowColumn className="colEdit">
                         <IconMenu
@@ -256,6 +264,9 @@ class Main extends Component {
                     </Table>
                     {this.renderDialogEditOU()}
                 </div>
+                <FloatingActionButton style={localStyle.fabButom}>
+                    <ContentAdd />
+                </FloatingActionButton>
             </div>
         )
     }
