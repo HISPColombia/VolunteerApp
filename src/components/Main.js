@@ -64,6 +64,16 @@ class Main extends Component {
                 orgUnitGroups: [{ id: "" }],
                 lastUpdated: ""
             },
+            settingsApp: {
+                supervisorOUGS: null,
+                userRole: null,
+                userGroup: null,
+                latitudeRange: null,
+                longitudeRange: null,
+                modeSetting: null,
+                userID: null,
+                passwordUser: null
+            },
             OUList: [],
             OUGList: [],
             openEditOu: false,
