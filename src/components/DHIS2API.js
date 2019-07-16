@@ -31,7 +31,7 @@ class DHIS2Api{
             return(res[resource])
         })
     }
-    async getOrgUnitGroup(filter){
+    async getOrgUnitGroup(filter){//¿?
         const resource="organisationUnitGroups"
         const param="fields=id,name,user,organisationUnits"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{

@@ -64,16 +64,6 @@ class Main extends Component {
                 orgUnitGroups: [{ id: "" }],
                 lastUpdated: ""
             },
-            settingsApp: {
-                supervisorOUGS: null,
-                userRole: null,
-                userGroup: null,
-                latitudeRange: null,
-                longitudeRange: null,
-                modeSetting: null,
-                userID: null,
-                passwordUser: null
-            },
             OUList: [],
             OUGList: [],
             openEditOu: false,
@@ -109,7 +99,6 @@ class Main extends Component {
     };
 
     handleOpenSetting(OUGSelected) {
-        console.log(OUGSelected)
         this.setState(
             {
                 openSetting: true,

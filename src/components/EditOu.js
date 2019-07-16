@@ -63,14 +63,14 @@ class EditOu extends React.Component {
         this.setState({volunteer});
     }
     renderParthers(){
-        return this.state.OUList.map(parther=>{         
+        return this.state.OUList.map(parther=>{
             return(
                 <MenuItem value={parther.id} primaryText={parther.name} />
             )
         })
     }
     renderSupervisor(){
-        return this.state.OUGList.map(group=>{         
+        return this.state.OUGList.map(group=>{
             return(
                 <MenuItem value={group.id} primaryText={group.name} />
             )
