@@ -3,6 +3,7 @@ import React from 'react';
 import DatePicker from 'material-ui/DatePicker';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
+import AutoComplete from 'material-ui/AutoComplete';
 import theme from '../theme'
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
@@ -35,11 +36,19 @@ class EditOu extends React.Component {
         const D2API = new DHIS2Api(this.props.d2);
         const OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:like:"+value);
         this.setState({ OUList });
+        return OUList;
     }
-    async getSupervisor() {
+    async getSupervisor(value) {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet);
+        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet+"&filter=name:like:"+value);
         this.setState({ OUGList: OUGList[0].organisationUnitGroups });
+        return OUGList[0].organisationUnitGroups;
+    }
+    handleParent(selected){
+        console.log(selected)
+    }
+    handleSupervisor(selected){
+        console.log(selected)
     }
     async getLanguage() {
         const D2API = new DHIS2Api(this.props.d2);
@@ -94,8 +103,8 @@ class EditOu extends React.Component {
             this.setState({ disabled: true });
             this.getLanguage();
         }
-        this.getParthers();
-        this.getSupervisor();
+        //this.getParthers();
+        //this.getSupervisor();
         ;
 
     }
@@ -104,23 +113,7 @@ class EditOu extends React.Component {
         volunteer[key] = value
         this.setState({ volunteer });
     }
-    handleParent(selected){
-        console.log(selected)
-    }
-    renderParthers() {
-        return this.state.OUList.map(parent => {
-            return (
-                <MenuItem key={parent.id} value={parent.id} primaryText={parent.name} />
-            )
-        })
-    }
-    renderSupervisor() {
-        return this.state.OUGList.map(group => {
-            return (
-                <MenuItem key={group.id} value={group.id} primaryText={group.name} />
-            )
-        })
-    }
+   
     setValueForm() {
         const code = this.props.volunteerOU.code;
         const fullname = this.props.volunteerOU.name;
@@ -163,34 +156,28 @@ class EditOu extends React.Component {
     }
     render() {
         const { d2 } = this.props;
+        const dataSourceConfig = {
+            text: 'name',
+            value: 'id',
+          };
         return (<div>
             <div style={localstyle.divForm}>
-                <SelectField
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
-                    value={this.state.volunteer.supervisor}
-                    style={theme.volunteerForm.textBox}
-                    onChange={(event, index, value) => this.handleSetValueForm("supervisor", value, event, index)}
-                    disabled={this.state.disabled}
-                >
-                    {this.renderSupervisor()}
-                </SelectField>
-                <SearchTextBox 
-                    source={this.searchParents.bind(this)} 
-                    title={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")} 
-                    callBackSelected={this.handleParent.bind(this)} 
-                    color={theme.settingOptions.icon}
-                    showValueSelected={false}  
-                    disabled={false}        
+                <AutoComplete
+                hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
+                dataSource={this.state.OUGList}
+                onUpdateInput={this.getSupervisor.bind(this)}
+                dataSourceConfig={dataSourceConfig}
+                style={theme.volunteerForm.textBox}
+                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
                 />
-                <SelectField
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")}
-                    value={this.state.volunteer.parent}
-                    style={theme.volunteerForm.textBox}
-                    onChange={(event, index, value) => this.handleSetValueForm("parent", value, event, index)}
-                    disabled={this.state.disabled}
-                >
-                    {this.renderParthers()}
-                </SelectField>
+                <AutoComplete
+                hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")} 
+                dataSource={this.state.OUList}
+                onUpdateInput={this.searchParents.bind(this)} 
+                dataSourceConfig={dataSourceConfig}
+                style={theme.volunteerForm.textBox}
+                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
+                />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CODE")}
                     value={this.state.volunteer.code}

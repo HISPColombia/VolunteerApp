@@ -13,17 +13,14 @@ const styles={
     },
     contentList:{
         position:'absolute',
-        zIndex: 1,
+        zIndex: 100,
         backgroundColor:white,
         width: '35%'
     },
     hideList:{
         display:'none'
-    }
-
-
-
-    
+    },
+   
 }
 class SearchTextBox extends React.Component {
     constructor(props) {
@@ -38,7 +35,7 @@ class SearchTextBox extends React.Component {
         }
         else{            
             this.props.source(event.target.value).then(res=>{
-                this.setState({value:res.organisationUnits});
+                this.setState({value:res});
             })
         }
     }
@@ -55,7 +52,7 @@ class SearchTextBox extends React.Component {
     render() {
         var keycount=0;
         return (
-            <div >
+            <span>
                 
     
                 <TextField 
@@ -66,6 +63,7 @@ class SearchTextBox extends React.Component {
                         value={this.props.disabled?"":this.state.textValue}
                         floatingLabelText={this.props.title}
                         disabled={this.props.disabled}
+                        style={this.props.style}
                 />
                 <div style={this.state.value.length==0?styles.hideList:styles.contentList}>
                 <Paper>
@@ -78,7 +76,7 @@ class SearchTextBox extends React.Component {
                 </Paper> 
                 </div>
       
-            </div>
+            </span>
         )
     }
 }
