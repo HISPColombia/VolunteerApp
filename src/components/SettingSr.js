@@ -23,7 +23,7 @@ const localstyle = {
         flexWrap: 'nowrap',
         flexDirection: 'row',
         boxSizing: 'border-box',
-    }
+    },
 }
 class SettingSr extends React.Component {
     constructor(props) {
@@ -60,7 +60,8 @@ class SettingSr extends React.Component {
             },
             value: props.value,
             OUG: [],
-            disabledSetting: true
+            disabledSetting: true,
+            remoteConnect: true
         }
     }
     async getSupervisor(filter) {
@@ -166,9 +167,16 @@ class SettingSr extends React.Component {
     }
 
     onChangeRadioButtom(event, value) {
-        setValue(event.target.value);
-        console.log(value);
-      }
+        if (value == "Local") {
+            console.log('Local');
+            let remoteConnect = true;
+            this.setState({ remoteConnect })
+        } else {
+            console.log('Local_and_remote');
+            let remoteConnect = false;
+            this.setState({ remoteConnect })
+        }
+    }
 
     onChangeUrl(event, value) {
         const { d2 } = this.props;
@@ -248,28 +256,27 @@ class SettingSr extends React.Component {
                     errorText={this.state.settingApp.longitudeRangeError}
                 />
                 <h3>{d2.i18n.getTranslation("LABEL_MODE")}</h3>
-                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local"> 
+                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={this.onChangeRadioButtom.bind(this)}>
                     <RadioButton
                         name="Local"
                         value="Local"
                         label={d2.i18n.getTranslation("LABEL_LOCAL_SERVER")}
                         style={localstyle.radioButton}
-                        checkedIcon={this.onChangeRadioButtom.bind(this)}
                     />
                     <RadioButton
                         name="Local_and_remote"
                         value="Local_and_remote"
                         label={d2.i18n.getTranslation("LABEL_LOCAL_AND_REMOTE_SERVER")}
                         style={localstyle.radioButton}
-                        checkedIcon={this.onChangeRadioButtom.bind(this)}
                     />
                 </RadioButtonGroup>
-                <TextField
+                <TextField 
                     floatingLabelText={d2.i18n.getTranslation("LABEL_UG_REMOTE_SERVER")}
                     style={theme.volunteerForm.urlInput}
                     value={this.state.settingApp.remoteServer}
                     onChange={this.onChangeUrl.bind(this)}
                     errorText={this.state.settingApp.remoteServerError}
+                    disabled={this.state.remoteConnect}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_UG_USER_ID")}
@@ -278,6 +285,7 @@ class SettingSr extends React.Component {
                     value={this.state.settingApp.userId}
                     onChange={this.onChangeUserId.bind(this)}
                     errorText={this.state.settingApp.userIdError}
+                    disabled={this.state.remoteConnect}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_UG_PASSWORD")}
@@ -286,6 +294,7 @@ class SettingSr extends React.Component {
                     value={this.state.settingApp.passwordUser}
                     onChange={this.onChangeUserPass.bind(this)}
                     errorText={this.state.settingApp.passwordUserError}
+                    disabled={this.state.remoteConnect}
                 />
             </div>
         )
