@@ -49,7 +49,7 @@ class SettingSr extends React.Component {
                 latitudeRangeError: "",
                 longitudeRange: "",
                 longitudeRangeError: "",
-                modeSetting: "",
+                modeSetting: "local",
                 modeSettingError: "",
                 remoteServer: "",
                 remoteServerError: "",
@@ -61,7 +61,7 @@ class SettingSr extends React.Component {
             value: props.value,
             OUG: [],
             disabledSetting: true,
-            remoteConnect: true
+            remoteConnect: true,
         }
     }
     async getSupervisor(filter) {
@@ -71,62 +71,39 @@ class SettingSr extends React.Component {
         this.setState({ OUG });
     }
 
-    clearForm() {
-        this.setState({
-            settingApp: {
-                supervisor: "",
-                supervisorError: "",
-                userRole: "",
-                userRoleError: "",
-                userGroup: "",
-                userGroupError: "",
-                latitudeRange: "",
-                latitudeRangeError: "",
-                longitudeRange: "",
-                longitudeRangeError: "",
-                modeSetting: "",
-                modeSettingError: "",
-                remoteServer: "",
-                remoteServerError: "",
-                userId: "",
-                userIdError: "",
-                passwordUser: "",
-                passwordUserError: ""
-            }
-        })
-    }
-
-    onChangeSupervisor(event, value) {
+    validateSupervisor(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_TEXT_SUPERVISOR");
-        if (value.length == 11) {
-            this.setState({ settingApp: { supervisorError: "", } })
+        if (value.length === 11) {
+            return true;
         } else {
-            this.setState({ settingApp: { supervisorError: errorText, } })
+            this.setState({ settingApp: { supervisorError: errorText } })
+            return false;
         }
     }
 
-    onChangeUserRole(event, value) {
+    validateUserRole(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR");
         let MyArray = value.split(',');
         let i = 0;
         for (i = 0; i <= MyArray.length; i++) {
             if (MyArray[i].length == 11) {
-                this.setState({ settingApp: { userRoleError: "", } })
-            } else {
+                return true
+                        } else {
                 this.setState({ settingApp: { userRoleError: errorText, } })
             }
         }
     }
 
-    onChangeUserGroup(event, value) {
+    validateUserGroup(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR");
         let MyArray = value.split(',');
         let i = 0;
         for (i = 0; i <= MyArray.length; i++) {
             if (MyArray[i].length == 11) {
+                this.setState({ settingApp: { userGroup: value, } })
                 this.setState({ settingApp: { userGroupError: "", } })
             } else {
                 this.setState({ settingApp: { userGroupError: errorText, } })
@@ -134,31 +111,29 @@ class SettingSr extends React.Component {
         }
     }
 
-    onChangeLat(event, value) {
+    validateLatitudeRange(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_TEXT_LATITUDE_RANGE");
         let MyArray = value.split(',');
         let i = 0;
-        console.log("range: " + MyArray.length);
         for (i = 0; i < MyArray.length; i++) {
-            console.log("rango=" + MyArray[i]);
             if (MyArray[i] <= 90.00000) {
-                console.log("cumple " + i);
+                this.setState({ settingApp: { latitudeRange: value, } })
                 this.setState({ settingApp: { latitudeRangeError: "", } })
             } else {
-                console.log("no cumple " + i);
                 this.setState({ settingApp: { latitudeRangeError: errorText, } })
             }
         }
     }
 
-    onChangeLon(event, value) {
+    validateLongitudeRange(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_TEXT_LONGITUDE_RANGE");
         let MyArray = value.split(',');
         let i = 0;
         for (i = 0; i < MyArray.length; i++) {
             if (MyArray[i] <= 180.00000) {
+                this.setState({ settingApp: { longitudeRange: value, } })
                 this.setState({ settingApp: { longitudeRangeError: "", } })
             } else {
                 this.setState({ settingApp: { longitudeRangeError: errorText, } })
@@ -166,46 +141,86 @@ class SettingSr extends React.Component {
         }
     }
 
-    onChangeRadioButtom(event, value) {
+    validateRadioButtom(value) {
         if (value == "Local") {
-            console.log('Local');
             let remoteConnect = true;
             this.setState({ remoteConnect })
+            this.setState({ settingApp: { modeSetting: 'local', } })
         } else {
-            console.log('Local_and_remote');
             let remoteConnect = false;
             this.setState({ remoteConnect })
+            this.setState({ settingApp: { modeSetting: 'local and remote', } })
         }
     }
 
-    onChangeUrl(event, value) {
+    validateUrl(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_URL_SERVER");
         if (/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value)) {
+            this.setState({ settingApp: { remoteServer: value, } })
             this.setState({ settingApp: { remoteServerError: "", } })
         } else {
             this.setState({ settingApp: { remoteServerError: errorText, } })
         }
     }
 
-    onChangeUserId(event, value) {
+    validateUserId(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_USER_ID_SERVER_REMOTE");
         if (value.length >= 2 && value.length <= 25) {
+            this.setState({ settingApp: { userId: value, } })
             this.setState({ settingApp: { userIdError: "", } })
         } else {
             this.setState({ settingApp: { userIdError: errorText, } })
         }
     }
 
-    onChangeUserPass(event, value) {
+    validateUserPass(value) {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_USER_PASS_SERVER_REMOTE");
         if (value.length >= 8 && value.length <= 25) {
+            this.setState({ settingApp: { passwordUser: value, } })
             this.setState({ settingApp: { passwordUserError: "", } })
         } else {
             this.setState({ settingApp: { passwordUserError: errorText, } })
         }
+    }
+
+    handleSetValueForm(key, index, event, value) {
+        let settingApp = this.state.settingApp
+        let errotest= key+"Error"
+        /*
+        switch (key) {
+            case 'supervisor':
+                this.validateSupervisor(value);
+                break;
+            case 'userRole':
+                this.validateUserRole(value);
+                break;
+            case 'userGroup':
+                this.validateUserGroup(value);
+                break;
+            case 'latitudeRange':
+                this.validateLatitudeRange(value);
+                break;
+            case 'longitudeRange':
+                this.validateLongitudeRange(value);
+                break;
+            case 'modeSetting':
+                this.validateRadioButtom(value);
+                break;
+            case 'remoteServer':
+                this.validateUrl(value);
+                break;
+            case 'userId':
+                this.validateUserId(value);
+                break;
+            case 'passwordUser':
+                this.validateUserPass(value);
+                break;
+        }*/
+        settingApp[key] = value
+        this.setState({ settingApp });
     }
 
     render() {
@@ -224,39 +239,39 @@ class SettingSr extends React.Component {
                     floatingLabelText={d2.i18n.getTranslation("LABEL_SUPERVISOR_OUGS_ID")}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.supervisor}
-                    onChange={this.onChangeSupervisor.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("supervisor", value, event, index)}
                     errorText={this.state.settingApp.supervisorError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_USER_ROL_CREATION_ID")}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.userRole}
-                    onChange={this.onChangeUserRole.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("userRole", value, event, index)}
                     errorText={this.state.settingApp.userRoleError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_GROUP_CREATION_ID")}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.userGroup}
-                    onChange={this.onChangeUserGroup.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("userGroup", value, event, index)}
                     errorText={this.state.settingApp.userGroupError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_LATITUDE_RANGE")}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.latitudeRange}
-                    onChange={this.onChangeLat.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("latitudeRange", value, event, index)}
                     errorText={this.state.settingApp.latitudeRangeError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_LONGITUDE_RANGE")}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.longitudeRange}
-                    onChange={this.onChangeLon.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("longitudeRange", value, event, index)}
                     errorText={this.state.settingApp.longitudeRangeError}
                 />
-                <h3>{d2.i18n.getTranslation("LABEL_MODE")}</h3>
-                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={this.onChangeRadioButtom.bind(this)}>
+                <h4>{d2.i18n.getTranslation("LABEL_MODE")}</h4>
+                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={(event, index, value) => this.handleSetValueForm("modeSetting", value, event, index)}>
                     <RadioButton
                         name="Local"
                         value="Local"
@@ -270,11 +285,11 @@ class SettingSr extends React.Component {
                         style={localstyle.radioButton}
                     />
                 </RadioButtonGroup>
-                <TextField 
+                <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_UG_REMOTE_SERVER")}
                     style={theme.volunteerForm.urlInput}
                     value={this.state.settingApp.remoteServer}
-                    onChange={this.onChangeUrl.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("remoteServer", value, event, index)}
                     errorText={this.state.settingApp.remoteServerError}
                     disabled={this.state.remoteConnect}
                 />
@@ -283,7 +298,7 @@ class SettingSr extends React.Component {
                     value={this.state.OUGList}
                     style={theme.volunteerForm.textBox}
                     value={this.state.settingApp.userId}
-                    onChange={this.onChangeUserId.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("userId", value, event, index)}
                     errorText={this.state.settingApp.userIdError}
                     disabled={this.state.remoteConnect}
                 />
@@ -292,7 +307,7 @@ class SettingSr extends React.Component {
                     style={theme.volunteerForm.textBox}
                     type="password"
                     value={this.state.settingApp.passwordUser}
-                    onChange={this.onChangeUserPass.bind(this)}
+                    onChange={(event, index, value) => this.handleSetValueForm("passwordUser", value, event, index)}
                     errorText={this.state.settingApp.passwordUserError}
                     disabled={this.state.remoteConnect}
                 />

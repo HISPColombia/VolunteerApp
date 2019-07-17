@@ -106,9 +106,18 @@ class Main extends Component {
             });
     };
 
-    handleCloseSetting() {
-        this.setState({ openSetting: false });
-    };
+
+
+    handleSaveSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        //Create 
+        if (this.state.fistSetting == true)
+            D2API.setSetting(this.state.settingApp);
+        else //update
+            D2API.upSetting(this.state.settingApp);
+        this.handleCloseSetting();
+    }
+    
 
     handleSelectSupervisor(event, index, value) {
         let volunteer = this.state.volunteer.orgUnitGroups
@@ -119,6 +128,18 @@ class Main extends Component {
         const OUGSelected = value;
         this.setState({ OUGSelected })
         this.setState({ disabledSetting })
+    }
+
+    async getSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        //get Setting
+        const settingApp = await D2API.getSetting()
+        //first time
+        let fistSetting = false;
+        if (Object.keys(settingApp).length == 0)
+            fistSetting = true;
+        this.setState({ settingApp, fistSetting });
+        //
     }
 
     renderSupervisor() {
@@ -156,12 +177,14 @@ class Main extends Component {
     }
 
     renderDialogSettingsSr() {
+        const D2API = new DHIS2Api(this.props.d2);
+        const { d2 } = this.props;
         const actions = [
             <RaisedButton
-                label="Ok"
+                label={d2.i18n.getTranslation("BTN_SAVE")}
                 primary={true}
                 keyboardFocused={true}
-                onClick={() => this.handleCloseSetting()}
+                onClick={() => this.handleSaveSetting(D2API)}
             />,
         ];
         return (
@@ -209,10 +232,12 @@ class Main extends Component {
         })
 
     }
+    componentDidMount(){
+        this.getSupervisors()
+    }
 
     render() {
         const { d2 } = this.props;
-        this.getSupervisors()
         return (
             <div className='contMain'>
                 <div className='barApp'>
