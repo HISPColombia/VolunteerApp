@@ -67,7 +67,7 @@
     "test"
   ],
   "manifest.webapp": {
-    "name": "DHIS 2 Sharing Setting App",
+    "name": "Volunteer App",
     "icons": {
       "48": "icon.png"
     },
