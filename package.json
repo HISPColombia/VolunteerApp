@@ -23,7 +23,7 @@
     "manifest": "d2-manifest package.json build/manifest.webapp",
     "start": "webpack-dev-server",
     "dist_win": "npm run build_win && npm run postbuild_win_globalnpm",
-    "dist": "npm run build && npm run postbuild && cd build && zip -r bat-app.zip * && cd .."
+    "dist": "npm run build && npm run postbuild && cd build && zip -r volunteer-app.zip * && cd .."
   },
   "dependencies": {
     "@material-ui/core": "^3.9.1",
