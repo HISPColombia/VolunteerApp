@@ -8,7 +8,6 @@ import theme from '../theme'
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import DHIS2Api from './DHIS2API';
-import SearchTextBox from './SearchTextBox';
 import setting from '../setting.json'
 
 const localstyle = {
@@ -22,7 +21,8 @@ class EditOu extends React.Component {
         this.state = {
             volunteer: {},
             OUList: [],
-            OUGList: []
+            OUGList: [],
+           
         }
     }
     async getParthers() {
@@ -40,15 +40,16 @@ class EditOu extends React.Component {
     }
     async getSupervisor(value) {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet+"&filter=name:like:"+value);
-        this.setState({ OUGList: OUGList[0].organisationUnitGroups });
-        return OUGList[0].organisationUnitGroups;
-    }
-    handleParent(selected){
-        console.log(selected)
-    }
-    handleSupervisor(selected){
-        console.log(selected)
+        const OUGListFull = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet+"&filter=name:like:"+value);
+        let OUGList=[]
+        
+        this.handleSupervisor("")
+
+        if(OUGListFull.length>0){
+            OUGList=OUGListFull[0].organisationUnitGroups                
+        }
+        this.setState({ OUGList});
+        return OUGList;
     }
     async getLanguage() {
         const D2API = new DHIS2Api(this.props.d2);
@@ -56,7 +57,6 @@ class EditOu extends React.Component {
         let { volunteer } = this.state;
         volunteer.language = language;
         this.setState({ volunteer });
-
     }
     async setVolunteer() {
         const OU = {
@@ -70,10 +70,10 @@ class EditOu extends React.Component {
 
             parent: { id: this.state.volunteer.parent },
             phoneNumber: this.state.volunteer.phoneNumber,
-            shortName: this.state.volunteer.firstname + "-" + this.state.volunteer.lastname
+            shortName: this.state.volunteer.village
         }
         const User = {
-            attributeValues: [],
+               attributeValues: [],
             dataViewOrganisationUnits: [{ id: "CWNiOc88xor" }],
             email: this.state.volunteer.email,
             firstName: this.state.volunteer.firstname,
@@ -103,37 +103,38 @@ class EditOu extends React.Component {
             this.setState({ disabled: true });
             this.getLanguage();
         }
-        //this.getParthers();
-        //this.getSupervisor();
-        ;
-
     }
     handleSetValueForm(key, value, event, index) {
         let volunteer = this.state.volunteer
         volunteer[key] = value
         this.setState({ volunteer });
     }
-   
+    handleSupervisor(chosenRequest,index){
+        let volunteer = this.state.volunteer
+        volunteer["supervisor"] = chosenRequest.id
+        this.setState({ volunteer });
+    }
+    handleParent(chosenRequest,index){
+        let volunteer = this.state.volunteer
+        volunteer["parent"] = chosenRequest.id
+        this.setState({ volunteer });
+    }
     setValueForm() {
         const code = this.props.volunteerOU.code;
         const fullname = this.props.volunteerOU.name;
-        const firstname = fullname.split("-")[0];
-        const lastname = fullname.split("-")[1];
+        const firstname = this.props.volunterUser.firstName;
+        const lastname = this.props.volunterUser.surname;
         const openingDate = new Date(this.props.volunteerOU.openingDate);
         const closedDate = (this.props.volunteerOU.closedDate == undefined ? "" : new Date(this.props.volunteerOU.closedDate));
         const parent = this.props.volunteerOU.parent.id;
         const supervisor = this.props.volunteerOU.organisationUnitGroups[0].id;
-        const village = ""
+        const village = this.props.volunteerOU.shortName;
         const villagegps = "";
         const password = "";
         const repeatpassword = "";
         const { language } = this.state;
         var email = this.props.volunteerOU.email == undefined ? "" : this.props.volunteerOU.email;
-        var phoneNumber = this.props.volunteerOU.phoneNumber == undefined ? "" : this.props.volunteerOU.phoneNumber;
-        if (this.props.volunterUser != undefined) {
-            email = this.props.volunterUser.email;
-            phoneNumber = this.props.volunterUser.phoneNumber;
-        }
+        var phoneNumber = this.props.volunterUser.phoneNumber == undefined ? "" : this.props.volunterUser.phoneNumber;
         let volunteer = {
             code,
             supervisor,
@@ -154,6 +155,7 @@ class EditOu extends React.Component {
         this.setState({ volunteer });
 
     }
+
     render() {
         const { d2 } = this.props;
         const dataSourceConfig = {
@@ -169,6 +171,8 @@ class EditOu extends React.Component {
                 dataSourceConfig={dataSourceConfig}
                 style={theme.volunteerForm.textBox}
                 floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
+                onNewRequest={this.handleSupervisor.bind(this)}
+                floatingLabelStyle={this.state.volunteer.supervisor=""?theme.volunteerForm.error:""}
                 />
                 <AutoComplete
                 hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")} 
@@ -176,7 +180,8 @@ class EditOu extends React.Component {
                 onUpdateInput={this.searchParents.bind(this)} 
                 dataSourceConfig={dataSourceConfig}
                 style={theme.volunteerForm.textBox}
-                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
+                floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT")}
+                onNewRequest={this.handleParent.bind(this)}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CODE")}
@@ -184,7 +189,7 @@ class EditOu extends React.Component {
                     style={theme.volunteerForm.textBoxAuto}
                     disabled={this.state.disabled}
                     fullWidth={true}
-                />
+                    onChange={(event, value) => this.handleSetValueForm("code", value, event)}                />
                 <br />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_FISTNAME")}
@@ -208,13 +213,13 @@ class EditOu extends React.Component {
                 <br />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_VILLAGE")}
-                    value={this.state.village}
+                    value={this.state.volunteer.village}
                     style={theme.volunteerForm.textBox}
                     onChange={(event, value) => this.handleSetValueForm("village", value, event)}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_VILLAGEGPS")}
-                    value={this.state.villagegps}
+                    value={this.state.volunteer.villagegps}
                     style={theme.volunteerForm.textBox}
                     onChange={(event, value) => this.handleSetValueForm("villagegps", value, event)}
                 />
