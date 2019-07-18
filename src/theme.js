@@ -50,10 +50,16 @@ const theme = {
             maxWidth:255,
             margin:10
         },
-        textBoxAuto:{
+       textBoxAuto:{
             maxWidth:520,
             margin:10
         },
+        urlInput:{
+            marginTop:20,
+            width:'100%',
+            maxWidth:530,
+        },
+       
         selectField:{
             marginTop:20,          
             maxWidth:255,
