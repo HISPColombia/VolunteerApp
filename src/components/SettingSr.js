@@ -72,73 +72,63 @@ class SettingSr extends React.Component {
     }
 
     validateSupervisor(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_TEXT_SUPERVISOR");
         if (value.length === 11) {
             return true;
         } else {
-            this.setState({ settingApp: { supervisorError: errorText } })
             return false;
         }
     }
 
     validateUserRole(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR");
-        let MyArray = value.split(',');
+        let MyArray = value.split(',')
         let i = 0;
-        for (i = 0; i <= MyArray.length; i++) {
+        let validatePas = false
+        for (i = 0; i < MyArray.length; i++) {
             if (MyArray[i].length == 11) {
-                return true
-                        } else {
-                this.setState({ settingApp: { userRoleError: errorText, } })
+                validatePas = true
+            } else {
+                validatePas = false
             }
-        }
+        } return validatePas
     }
 
     validateUserGroup(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR");
         let MyArray = value.split(',');
         let i = 0;
+        let validatePas = false
         for (i = 0; i <= MyArray.length; i++) {
             if (MyArray[i].length == 11) {
-                this.setState({ settingApp: { userGroup: value, } })
-                this.setState({ settingApp: { userGroupError: "", } })
+                validatePas = true
             } else {
-                this.setState({ settingApp: { userGroupError: errorText, } })
+                validatePas = false
             }
-        }
+        } return validatePas
     }
 
     validateLatitudeRange(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_TEXT_LATITUDE_RANGE");
         let MyArray = value.split(',');
         let i = 0;
+        let validatePas = false
         for (i = 0; i < MyArray.length; i++) {
             if (MyArray[i] <= 90.00000) {
-                this.setState({ settingApp: { latitudeRange: value, } })
-                this.setState({ settingApp: { latitudeRangeError: "", } })
+                validatePas = true
             } else {
-                this.setState({ settingApp: { latitudeRangeError: errorText, } })
+                validatePas = false
             }
-        }
+        } return validatePas
     }
 
     validateLongitudeRange(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_TEXT_LONGITUDE_RANGE");
         let MyArray = value.split(',');
         let i = 0;
+        let validatePas = false
         for (i = 0; i < MyArray.length; i++) {
             if (MyArray[i] <= 180.00000) {
-                this.setState({ settingApp: { longitudeRange: value, } })
-                this.setState({ settingApp: { longitudeRangeError: "", } })
+                validatePas = true
             } else {
-                this.setState({ settingApp: { longitudeRangeError: errorText, } })
+                validatePas = false
             }
-        }
+        } return validatePas
     }
 
     validateRadioButtom(value) {
@@ -154,24 +144,18 @@ class SettingSr extends React.Component {
     }
 
     validateUrl(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_URL_SERVER");
         if (/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value)) {
-            this.setState({ settingApp: { remoteServer: value, } })
-            this.setState({ settingApp: { remoteServerError: "", } })
+            return true
         } else {
-            this.setState({ settingApp: { remoteServerError: errorText, } })
+            return false
         }
     }
 
     validateUserId(value) {
-        const { d2 } = this.props;
-        let errorText = d2.i18n.getTranslation("ERROR_USER_ID_SERVER_REMOTE");
         if (value.length >= 2 && value.length <= 25) {
-            this.setState({ settingApp: { userId: value, } })
-            this.setState({ settingApp: { userIdError: "", } })
+            return true
         } else {
-            this.setState({ settingApp: { userIdError: errorText, } })
+            return false
         }
     }
 
@@ -179,50 +163,97 @@ class SettingSr extends React.Component {
         const { d2 } = this.props;
         let errorText = d2.i18n.getTranslation("ERROR_USER_PASS_SERVER_REMOTE");
         if (value.length >= 8 && value.length <= 25) {
-            this.setState({ settingApp: { passwordUser: value, } })
-            this.setState({ settingApp: { passwordUserError: "", } })
+            return true
         } else {
-            this.setState({ settingApp: { passwordUserError: errorText, } })
+            return false
         }
     }
 
     handleSetValueForm(key, index, event, value) {
+        const { d2 } = this.props;
         let settingApp = this.state.settingApp
-        let errotest= key+"Error"
-        /*
+        let errorKey = key + "Error"
+        let errorText = ""
         switch (key) {
             case 'supervisor':
-                this.validateSupervisor(value);
+                if (this.validateSupervisor(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_SUPERVISOR")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'userRole':
-                this.validateUserRole(value);
+                if (this.validateUserRole(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'userGroup':
-                this.validateUserGroup(value);
+                if (this.validateUserGroup(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_USER_ROLE_GR")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'latitudeRange':
-                this.validateLatitudeRange(value);
+                if (this.validateLatitudeRange(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_LATITUDE_RANGE")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'longitudeRange':
-                this.validateLongitudeRange(value);
+                if (this.validateLongitudeRange(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_LONGITUDE_RANGE")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'modeSetting':
-                this.validateRadioButtom(value);
+                let remoteConnect = true;
+                if (value == "Local") {
+                    remoteConnect = true;
+                    this.setState({ remoteConnect })
+                } else {
+                    remoteConnect = false;
+                    this.setState({ remoteConnect })
+                }
                 break;
             case 'remoteServer':
-                this.validateUrl(value);
+                if (this.validateUrl(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_URL_SERVER")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'userId':
-                this.validateUserId(value);
+                if (this.validateUserId(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_USER_ID_SERVER_REMOTE")
+                    settingApp[errorKey] = errorText
+                }
                 break;
             case 'passwordUser':
-                this.validateUserPass(value);
+                if (this.validateUserPass(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_USER_PASS_SERVER_REMOTE")
+                    settingApp[errorKey] = errorText
+                }
                 break;
-        }*/
+        }
         settingApp[key] = value
         this.setState({ settingApp });
     }
-    componentDidMount(){
+    componentDidMount() {
         const idSubRecipient = this.props.OUGSelected;
         this.getSupervisor(idSubRecipient);
     }
