@@ -23,7 +23,9 @@ import PersonDisabled from 'material-ui/svg-icons/content/block';
 import HelpIconMenu from 'material-ui/svg-icons/action/help-outline';
 import FlagStatus from 'material-ui/svg-icons/av/fiber-manual-record';
 import SelectField from 'material-ui/SelectField';
-import theme from '../theme'
+import theme from '../theme';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
 
 
 //My Components
@@ -37,6 +39,12 @@ const localStyle = {
     },
     Dialog: {
         maxWidth: 900
+    },
+    fabButom: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
     }
 
 }
@@ -54,7 +62,7 @@ class Main extends Component {
                 name: "",
                 parent: { id: "" },
                 orgUnitGroups: [{ id: "" }],
-                lastUpdated:""
+                lastUpdated: ""
             },
             OUList: [],
             OUGList: [],
@@ -69,7 +77,7 @@ class Main extends Component {
 
     async getSupervisors() {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=level:eq:6");
+        const OUGList = await D2API.getOrgUnitGroups();
         this.setState({ OUGList });
     }
 
@@ -104,7 +112,6 @@ class Main extends Component {
     };
 
     handleOpenSetting(OUGSelected) {
-        console.log(OUGSelected)
         this.setState(
             {
                 openSetting: true,
@@ -112,17 +119,40 @@ class Main extends Component {
             });
     };
 
-    handleCloseSetting() {
-        this.setState({ openSetting: false });
-    };
+
+
+    handleSaveSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        //Create 
+        if (this.state.fistSetting == true)
+            D2API.setSetting(this.state.settingApp);
+        else //update
+            D2API.upSetting(this.state.settingApp);
+        this.handleCloseSetting();
+    }
+    
 
     handleSelectSupervisor(event, index, value) {
         let volunteer = this.state.volunteer.orgUnitGroups
         volunteer["orgUnitGroups"] = [{ id: value }]
         this.setState({ volunteer });
         this.getOrgUnit(value);
-        let disabledSetting=false;
-        this.setState({disabledSetting})
+        let disabledSetting = false;
+        const OUGSelected = value;
+        this.setState({ OUGSelected })
+        this.setState({ disabledSetting })
+    }
+
+    async getSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        //get Setting
+        const settingApp = await D2API.getSetting()
+        //first time
+        let fistSetting = false;
+        if (Object.keys(settingApp).length == 0)
+            fistSetting = true;
+        this.setState({ settingApp, fistSetting });
+        //
     }
 
     renderSupervisor() {
@@ -160,12 +190,14 @@ class Main extends Component {
     }
 
     renderDialogSettingsSr() {
+        const D2API = new DHIS2Api(this.props.d2);
+        const { d2 } = this.props;
         const actions = [
             <RaisedButton
-                label="Ok"
+                label={d2.i18n.getTranslation("BTN_SAVE")}
                 primary={true}
                 keyboardFocused={true}
-                onClick={() => this.handleCloseSetting()}
+                onClick={() => this.handleSaveSetting(D2API)}
             />,
         ];
         return (
@@ -178,7 +210,7 @@ class Main extends Component {
                     onRequestClose={() => this.handleCloseSetting()}
                     style={localStyle.Dialog}
                 >
-                    <SettingSr d2={this.props.d2} volunteer={this.state.OUGSelected} />
+                    <SettingSr d2={this.props.d2} OUGSelected={this.state.OUGSelected} />
                 </Dialog>
             </div>
         )
@@ -191,11 +223,11 @@ class Main extends Component {
         return OUList.map(ou => {
             return (
                 <TableRow className="col-hide"> key={ou.id}>
-                    <TableRowColumn className="colIni">{ou.name}</TableRowColumn> 
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus/></TableRowColumn>
+                    <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
                     <TableRowColumn className="colEnd">{ou.lastUpdated}</TableRowColumn>
                     <TableRowColumn className="colEdit">
                         <IconMenu
@@ -213,10 +245,12 @@ class Main extends Component {
         })
 
     }
+    componentDidMount(){
+        this.getSupervisors()
+    }
 
     render() {
         const { d2 } = this.props;
-        this.getSupervisors()
         return (
             <div className='contMain'>
                 <div className='barApp'>
@@ -267,6 +301,9 @@ class Main extends Component {
                     </Table>
                     {this.renderDialogEditOU()}
                 </div>
+                <FloatingActionButton style={localStyle.fabButom}>
+                    <ContentAdd />
+                </FloatingActionButton>
             </div>
         )
     }

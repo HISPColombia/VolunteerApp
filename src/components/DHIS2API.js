@@ -73,6 +73,19 @@ class DHIS2Api{
             return(res)
         })
     }
+    async setSetting(data) {
+        let url = "dataStore/VolunteerApp/setting"
+        return await this.setResourceSelected(url, data)
+    }
+    async upSetting(data) {
+        let url = "dataStore/VolunteerApp/setting"
+        return await this.upResourceSelected(url, data)
+    }
+
+    async getSetting() {
+        let url = "dataStore/VolunteerApp/setting"
+        return await this.getResourceSelected(url)
+    }
 }
 
 export default DHIS2Api;
