@@ -131,18 +131,6 @@ class SettingSr extends React.Component {
         } return validatePas
     }
 
-    validateRadioButtom(value) {
-        if (value == "Local") {
-            let remoteConnect = true;
-            this.setState({ remoteConnect })
-            this.setState({ settingApp: { modeSetting: 'local', } })
-        } else {
-            let remoteConnect = false;
-            this.setState({ remoteConnect })
-            this.setState({ settingApp: { modeSetting: 'local and remote', } })
-        }
-    }
-
     validateUrl(value) {
         if (/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value)) {
             return true
