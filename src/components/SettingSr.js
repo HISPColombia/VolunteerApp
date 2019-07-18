@@ -222,11 +222,13 @@ class SettingSr extends React.Component {
         settingApp[key] = value
         this.setState({ settingApp });
     }
-
+    componentDidMount(){
+        const idSubRecipient = this.props.OUGSelected;
+        this.getSupervisor(idSubRecipient);
+    }
     render() {
         const { d2 } = this.props;
         const idSubRecipient = this.props.OUGSelected;
-        this.getSupervisor(idSubRecipient);
         return (
             <div style={localstyle.divForm}>
                 <TextField

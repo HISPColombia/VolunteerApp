@@ -58,12 +58,14 @@ const theme = {
             marginTop:20,
             width:'100%',
             maxWidth:530,
-        },
-       
+        },       
         selectField:{
             marginTop:20,          
             maxWidth:255,
             margin:10
+        },
+        textError:{
+            color:red400
         }
     }
 };
