@@ -32,6 +32,7 @@ import ContentAdd from 'material-ui/svg-icons/content/add';
 import EditOu from './EditOu';
 import SettingSr from './SettingSr';
 import DHIS2Api from './DHIS2API';
+import setting from '../setting.json'
 
 const localStyle = {
     Main: {
@@ -74,11 +75,10 @@ class Main extends Component {
             disabledSetting: true
         }
     }
-
     async getSupervisors() {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups();
-        this.setState({ OUGList });
+        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet);
+        this.setState({ OUGList:OUGList[0].organisationUnitGroups});
     }
 
     async getOrgUnit(filter) {
@@ -100,10 +100,14 @@ class Main extends Component {
         })
       }
     handleOpenVolunteer(OUSelected) {
+        var volunterUser={}
+        if(OUSelected!=undefined)
+            volunterUser=this.findUser(OUSelected.code);
         this.setState(
             {
                 openEditOu: true,
-                OUSelected
+                OUSelected,
+                volunterUser
             });
     };
 
@@ -118,7 +122,13 @@ class Main extends Component {
                 OUGSelected
             });
     };
+    handleCloseSetting() {
+        this.setState(
+            {
+                openSetting: false,
 
+            });
+    };
 
 
     handleSaveSetting() {
@@ -164,25 +174,17 @@ class Main extends Component {
     }
 
     renderDialogEditOU() {
-        const actions = [
-            <RaisedButton
-                label="Ok"
-                primary={true}
-                keyboardFocused={true}
-                onClick={() => this.handleCloseVolunteer()}
-            />,
-        ];
         return (
             <div>
                 <Dialog
                     title={this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT")}
-                    actions={actions}
+     
                     modal={false}
                     open={this.state.openEditOu}
                     onRequestClose={() => this.handleCloseVolunteer()}
                     style={localStyle.Dialog}
                 >
-                    <EditOu d2={this.props.d2} volunteer={this.state.OUSelected} />
+                    <EditOu d2={this.props.d2} volunterUser={this.state.volunterUser} volunteerOU={this.state.OUSelected} handleClose={() => this.handleCloseVolunteer()} mode={this.state.OUSelected!=null?"edit":"create"}/>
                 </Dialog>
             </div>
         )
@@ -194,11 +196,21 @@ class Main extends Component {
         const { d2 } = this.props;
         const actions = [
             <RaisedButton
+            label={d2.i18n.getTranslation("BTN_CANCEL")}
+            primary={true}
+            keyboardFocused={false}
+            onClick={() => this.handleCloseSetting()}
+            style={{margin:5}}
+            />,
+            <RaisedButton
                 label={d2.i18n.getTranslation("BTN_SAVE")}
                 primary={true}
                 keyboardFocused={true}
                 onClick={() => this.handleSaveSetting(D2API)}
-            />,
+                style={{margin:5}}
+            />
+
+        
         ];
         return (
             <div>
@@ -247,6 +259,7 @@ class Main extends Component {
     }
     componentDidMount(){
         this.getSupervisors()
+        this.getUsers()
     }
 
     render() {
@@ -301,7 +314,7 @@ class Main extends Component {
                     </Table>
                     {this.renderDialogEditOU()}
                 </div>
-                <FloatingActionButton style={localStyle.fabButom}>
+                <FloatingActionButton style={localStyle.fabButom} onClick={() => this.handleOpenVolunteer()}>
                     <ContentAdd />
                 </FloatingActionButton>
             </div>

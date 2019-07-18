@@ -32,9 +32,17 @@ class DHIS2Api{
     //get methods
     async getOrgUnit(filter){
         const resource="organisationUnits"
-        const param="fields=id,parent,code,level,name,openingDate,closedDate,phoneNumber,email,organisationUnitGroups"+(filter==undefined?"":filter)
+        const param="fields=id,parent,code,level,name,shortName,openingDate,closedDate,phoneNumber,email,organisationUnitGroups"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
+        })
+    }
+    async getOrgUnitGroup(filter) {
+        const resource = "organisationUnitGroups"	        // code en la Unidad Organizativa igual que el name del usuario
+        const param = "fields=id,name,user,organisationUnits" + (filter == undefined ? "" : filter)	        // name de la Unidad ORganizativa es igual que firtName, Surname del usuario
+        return await this.getResourceSelected(resource, param).then(res => {	       
+             const resource="users"
+            return (res[resource])
         })
     }
     async getOrgUnitGroups(filter){
