@@ -1,0 +1,14 @@
+{
+    "orgUnitGroupSet":"IeuC0zHZkyL",
+    "SubRecipient":"",
+    "Supervisor":"",
+    "UserRoles":"uid,uid",
+    "UserGroups":"uid,uid",
+    "LatitudeRange":5,
+    "LongitudeRange":5,
+    "Mode":"Local Only",
+    "RemoteURL":"http://localhost:8080/dhis",
+    "UserId":"admin",
+    "Password":"District"
+
+}
