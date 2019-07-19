@@ -261,7 +261,13 @@ class Main extends Component {
         this.getSupervisors()
         this.getUsers()
     }
-
+    shouldComponentUpdate(nextProps, nextState){
+        if(this.state.OUGList!=nextState.OUGList){
+            this.handleSelectSupervisor("","",nextState.OUGList[0].id)            
+        }
+        return true;
+    }
+    
     render() {
         const { d2 } = this.props;
         return (
