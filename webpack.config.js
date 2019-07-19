@@ -34,7 +34,7 @@ const webpackConfig = {
     mode: 'development',
     output: {
         path: __dirname + '/build',
-        filename: 'sharingsetting.js',
+        filename: 'volunteerapp.js',
         publicPath: isDevBuild ? 'http://localhost:8081/' : './',
     },
     module: {
