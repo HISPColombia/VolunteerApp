@@ -52,6 +52,12 @@ class DHIS2Api{
             return(res[resource])
         })
     }
+    async setOrgUnitGroups(oug,ou){
+        const resource="organisationUnitGroups/"+oug+"/organisationUnits/"+ou
+          return await this.setResourceSelected(resource,{}).then(res =>{           
+            return(res[resource])
+        })
+    }
     async getUsers(filter){
         // code en la Unidad Organizativa igual que el name del usuario
         // name de la Unidad ORganizativa es igual que firtName, Surname del usuario
@@ -65,6 +71,12 @@ class DHIS2Api{
         const resource="userSettings/keyUiLocale"
         const param="user="+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{  
+           return("en")//return(res)
+        })
+    }
+    async setLangUsers(filter){
+        const resource="userSettings/keyUiLocale"+filter
+        return await this.setResourceSelected(resource,{}).then(res =>{  
            return("en")//return(res)
         })
     }
