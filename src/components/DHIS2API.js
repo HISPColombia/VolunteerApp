@@ -74,6 +74,12 @@ class DHIS2Api{
            return("en")//return(res)
         })
     }
+    async setLangUsers(filter){
+        const resource="userSettings/keyUiLocale"+filter
+        return await this.setResourceSelected(resource,{}).then(res =>{  
+           return("en")//return(res)
+        })
+    }
     //set methods
     async setOrgUnit(payload){
         const resource="organisationUnits"
