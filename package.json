@@ -1,7 +1,7 @@
 {
-  "name": "psiv1",
-  "version": "2.2.0",
-  "description": "App Sharing Setting",
+  "name": "volunteerapp",
+  "version": "0.0.2",
+  "description": "Volunteer App",
   "main": "./src/app.js",
   "repository": "https://github.com/HISPColombia/SharingSettingVer2.git",
   "author": "Helder Castrillon",
