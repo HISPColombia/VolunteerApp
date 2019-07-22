@@ -35,37 +35,65 @@ const theme = {
         canvasColor: white,
         borderColor: grey400,
         disabledColor: fade(darkBlack, 0.3),
-        error:red400
+        error: red400
     },
-    tabs:{backgroundColor:grey300,
-        selectedTextColor:grey800,
-        textColor:grey800
-        },
-    settingOptions:{
-        icon:grey600,
-        title:grey400        
+    tabs: {
+        backgroundColor: grey300,
+        selectedTextColor: grey800,
+        textColor: grey800
     },
-    volunteerForm:{ 
-        textBox:{            
-            maxWidth:255,
-            margin:10
+    settingOptions: {
+        icon: grey600,
+        title: grey400
+    },
+    volunteerForm: {
+        textBox: {
+            maxWidth: 255,
+            margin: 10
         },
-       textBoxAuto:{
-            maxWidth:520,
-            margin:10
+        textBoxAuto: {
+            maxWidth: 520,
+            margin: 10
         },
-        urlInput:{
-            marginTop:20,
-            width:'100%',
-            maxWidth:530,
-        },       
-        selectField:{
-            marginTop:20,          
-            maxWidth:255,
-            margin:10
+        selectField: {
+            marginTop: 20,
+            maxWidth: 255,
+            margin: 10
         },
-        textError:{
-            color:red400
+        textError: {
+            color: red400
+        }
+    },
+    settingForm: {
+        textBox: {
+            maxWidth: 255,
+            margin: 10
+        },
+        textBoxHide: {
+            maxWidth: 255,
+            margin: 10,
+        },
+        textBoxAuto: {
+            maxWidth: 520,
+            margin: 10
+        },
+        textFullWidth: {
+            width: '100%',
+            maxWidth: 530,
+            margin: 10
+        },
+        urlInput: {
+            marginTop: 20,
+            width: '100%',
+            maxWidth: 530,
+        },
+        selectField: {
+            marginTop: 20,
+            maxWidth: 255,
+            margin: 10
+        },
+        textError: {
+            color: red400
         },
         textInfo:{
             color:grey400
