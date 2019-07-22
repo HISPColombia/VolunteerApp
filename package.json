@@ -1,6 +1,6 @@
 {
   "name": "volunteerapp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Volunteer App",
   "main": "./src/app.js",
   "repository": "https://github.com/HISPColombia/SharingSettingVer2.git",
@@ -67,7 +67,7 @@
     "test"
   ],
   "manifest.webapp": {
-    "name": "Volunteer App 0.2",
+    "name": "Volunteer App 0.3",
     "icons": {
       "48": "icon.png"
     },

@@ -62,6 +62,9 @@ const theme = {
         },
         textError: {
             color: red400
+        },
+        textInfo:{
+            color:grey400
         }
     },
     settingForm: {
