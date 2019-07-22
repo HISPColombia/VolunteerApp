@@ -50,7 +50,6 @@ const localStyle = {
 
 }
 
-let countUser = 0;
 
 class Main extends Component {
     constructor(props) {
@@ -65,6 +64,7 @@ class Main extends Component {
                 orgUnitGroups: [{ id: "" }],
                 lastUpdated: ""
             },
+            countUser:0,
             OUList: [],
             OUGList: [],
             UsersList:[],
@@ -84,7 +84,7 @@ class Main extends Component {
     async getOrgUnit(filter) {
         const D2API = new DHIS2Api(this.props.d2);
         const OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter);
-        this.setState({ OUList });
+        this.setState({ OUList,countUser:OUList.length});
     }
     async getUsers(){
         const D2API = new DHIS2Api(this.props.d2);
@@ -177,8 +177,7 @@ class Main extends Component {
         return (
             <div>
                 <Dialog
-                    title={this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT")}
-     
+                    title={this.state.OUSelected!=null?this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT"):this.props.d2.i18n.getTranslation("TITLE_DIALOG_CREATE")}
                     modal={false}
                     open={this.state.openEditOu}
                     onRequestClose={() => this.handleCloseVolunteer()}
@@ -231,7 +230,6 @@ class Main extends Component {
 
     renderOUTable() {
         const OUList = this.state.OUList
-        countUser = OUList.length
         return OUList.map(ou => {
             return (
                 <TableRow className="col-hide"> key={ou.id}>
@@ -261,7 +259,13 @@ class Main extends Component {
         this.getSupervisors()
         this.getUsers()
     }
-
+    shouldComponentUpdate(nextProps, nextState){
+        if(this.state.OUGList!=nextState.OUGList){
+            this.handleSelectSupervisor("","",nextState.OUGList[0].id)            
+        }
+        return true;
+    }
+    
     render() {
         const { d2 } = this.props;
         return (
@@ -277,7 +281,7 @@ class Main extends Component {
                             {this.renderSupervisor()}
                         </SelectField>
                         <Badge
-                            badgeContent={countUser}
+                            badgeContent={this.state.countUser}
                             primary={true}
                             badgeStyle={{ top: -8, right: 0, width: 36, height: 36 }}
                         >

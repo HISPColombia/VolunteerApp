@@ -96,6 +96,11 @@ const theme = {
         },
         textError: {
             color: red400
+        textError:{
+            color:red400
+        },
+        textInfo:{
+            color:grey400
         }
     }
 };
