@@ -72,7 +72,6 @@ const theme = {
         textBoxHide: {
             maxWidth: 255,
             margin: 10,
-            display: 'none'
         },
         textBoxAuto: {
             maxWidth: 520,
@@ -87,7 +86,6 @@ const theme = {
             marginTop: 20,
             width: '100%',
             maxWidth: 530,
-            display: 'none'
         },
         selectField: {
             marginTop: 20,
@@ -96,8 +94,6 @@ const theme = {
         },
         textError: {
             color: red400
-        textError:{
-            color:red400
         },
         textInfo:{
             color:grey400

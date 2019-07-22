@@ -50,6 +50,7 @@ class SettingSr extends React.Component {
                 longitudeRange: "",
                 longitudeRangeError: "",
                 programs: "",
+                programsError: "",
                 modeSetting: "local",
                 modeSettingError: "",
                 remoteServer: "",
@@ -63,12 +64,12 @@ class SettingSr extends React.Component {
             OUG: [],
             disabledSetting: true,
             remoteConnect: true,
+            showMe: false
         }
     }
     async getSupervisor(filter) {
         const D2API = new DHIS2Api(this.props.d2);
         const OUG = await D2API.getOrgUnitGroups("/" + filter);
-        //console.log(JSON.stringify(OUG));
         this.setState({ OUG });
     }
 
@@ -136,9 +137,7 @@ class SettingSr extends React.Component {
         let MyArray = value.split(',')
         let i = 0;
         let validatePas = false
-        console.log(MyArray.length)
         for (i = 0; i < MyArray.length; i++) {
-            console.log(MyArray[i])
             if (MyArray[i].length == 11) {
                 validatePas = true
             } else {
@@ -219,24 +218,13 @@ class SettingSr extends React.Component {
                     settingApp[errorKey] = errorText
                 }
                 break;
-            case 'programs':
+            case 'programs':// no function!!
                 if (this.validatePrograms(value)) {
                     settingApp[errorKey] = ""
                 } else {
                     errorText = d2.i18n.getTranslation("ERROR_PROGRAMS")
                     settingApp[errorKey] = errorText
                 }
-            case 'modeSetting':
-                let remoteConnect = true;
-                if (value == "Local") {
-                    remoteConnect = true;
-
-                    this.setState({ remoteConnect })
-                } else {
-                    remoteConnect = false;
-                    this.setState({ remoteConnect })
-                }
-                break;
             case 'remoteServer':
                 if (this.validateUrl(value)) {
                     settingApp[errorKey] = ""
@@ -264,6 +252,17 @@ class SettingSr extends React.Component {
         }
         settingApp[key] = value
         this.setState({ settingApp });
+    }
+    remoteServerDataState(value){
+        let newVal
+        if(value==true){
+            newVal=false
+        }else{
+            newVal=true
+        }
+        this.setState({
+            showMe:newVal
+        })
     }
     componentDidMount() {
         const idSubRecipient = this.props.OUGSelected;
@@ -323,7 +322,7 @@ class SettingSr extends React.Component {
                     errorText={this.state.settingApp.remoteServerError}
                 />
                 <h4>{d2.i18n.getTranslation("LABEL_MODE")}</h4>
-                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={(event, index, value) => this.handleSetValueForm("modeSetting", value, event, index)}>
+                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={()=>this.remoteServerDataState(this.state.showMe)}>
                     <RadioButton
                         name="Local"
                         value="Local"
@@ -337,32 +336,36 @@ class SettingSr extends React.Component {
                         style={localstyle.radioButton}
                     />
                 </RadioButtonGroup>
-                <TextField
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_UG_REMOTE_SERVER")}
-                    style={theme.settingForm.urlInput}
-                    value={this.state.settingApp.remoteServer}
-                    onChange={(event, index, value) => this.handleSetValueForm("remoteServer", value, event, index)}
-                    errorText={this.state.settingApp.remoteServerError}
-                    disabled={this.state.remoteConnect}
-                />
-                <TextField
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_UG_USER_ID")}
-                    value={this.state.OUGList}
-                    style={theme.settingForm.textBoxHide}
-                    value={this.state.settingApp.userId}
-                    onChange={(event, index, value) => this.handleSetValueForm("userId", value, event, index)}
-                    errorText={this.state.settingApp.userIdError}
-                    disabled={this.state.remoteConnect}
-                />
-                <TextField
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_UG_PASSWORD")}
-                    style={theme.settingForm.textBoxHide}
-                    type="password"
-                    value={this.state.settingApp.passwordUser}
-                    onChange={(event, index, value) => this.handleSetValueForm("passwordUser", value, event, index)}
-                    errorText={this.state.settingApp.passwordUserError}
-                    disabled={this.state.remoteConnect}
-                />
+                {
+                    this.state.showMe?
+                    <div>
+                    <TextField
+                        floatingLabelText={d2.i18n.getTranslation("LABEL_UG_REMOTE_SERVER")}
+                        style={theme.settingForm.urlInput}
+                        value={this.state.settingApp.remoteServer}
+                        onChange={(event, index, value) => this.handleSetValueForm("remoteServer", value, event, index)}
+                        errorText={this.state.settingApp.remoteServerError}
+                    />
+                    <TextField
+                        floatingLabelText={d2.i18n.getTranslation("LABEL_UG_USER_ID")}
+                        value={this.state.OUGList}
+                        style={theme.settingForm.textBoxHide}
+                        value={this.state.settingApp.userId}
+                        onChange={(event, index, value) => this.handleSetValueForm("userId", value, event, index)}
+                        errorText={this.state.settingApp.userIdError}
+                    />
+                    <TextField
+                        floatingLabelText={d2.i18n.getTranslation("LABEL_UG_PASSWORD")}
+                        style={theme.settingForm.textBoxHide}
+                        type="password"
+                        value={this.state.settingApp.passwordUser}
+                        onChange={(event, index, value) => this.handleSetValueForm("passwordUser", value, event, index)}
+                        errorText={this.state.settingApp.passwordUserError}
+                    />
+                    </div>
+                    :null
+                }
+                    
             </div>
         )
     }

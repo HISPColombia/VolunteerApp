@@ -64,11 +64,12 @@ class Main extends Component {
                 orgUnitGroups: [{ id: "" }],
                 lastUpdated: ""
             },
-            countUser:0,
+            countUser: 0,
             OUList: [],
             OUGList: [],
-            UsersList:[],
+            UsersList: [],
             openEditOu: false,
+            openDialogMove: false,
             openSetting: false,
             OUSelected: null,
             OUGSelected: null,
@@ -78,31 +79,31 @@ class Main extends Component {
     async getSupervisors() {
         const D2API = new DHIS2Api(this.props.d2);
         const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet);
-        this.setState({ OUGList:OUGList[0].organisationUnitGroups});
+        this.setState({ OUGList: OUGList[0].organisationUnitGroups });
     }
 
     async getOrgUnit(filter) {
         const D2API = new DHIS2Api(this.props.d2);
         const OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter);
-        this.setState({ OUList,countUser:OUList.length});
+        this.setState({ OUList, countUser: OUList.length });
     }
-    async getUsers(){
+    async getUsers() {
         const D2API = new DHIS2Api(this.props.d2);
-        const UsersList=await D2API.getUsers("&paging=false");
-        this.setState({UsersList});
+        const UsersList = await D2API.getUsers("&paging=false");
+        this.setState({ UsersList });
     }
-      //Buscar que el usuario exista en la lista  
-     findUser(userCode){
-        return this.state.UsersList.find(user=>{           
-            if(user.userCredentials.username==userCode){
+    //Buscar que el usuario exista en la lista  
+    findUser(userCode) {
+        return this.state.UsersList.find(user => {
+            if (user.userCredentials.username == userCode) {
                 return user;
-            }                
+            }
         })
-      }
+    }
     handleOpenVolunteer(OUSelected) {
-        var volunterUser={}
-        if(OUSelected!=undefined)
-            volunterUser=this.findUser(OUSelected.code);
+        var volunterUser = {}
+        if (OUSelected != undefined)
+            volunterUser = this.findUser(OUSelected.code);
         this.setState(
             {
                 openEditOu: true,
@@ -115,6 +116,17 @@ class Main extends Component {
         this.setState({ openEditOu: false });
     };
 
+    handleOpenDialog() {
+        this.setState(
+            {
+                openDialogMove: true,
+            });
+    };
+
+    handleCloseDialogMove() {
+        this.setState({ openDialogMove: false });
+    };
+
     handleOpenSetting(OUGSelected) {
         this.setState(
             {
@@ -122,6 +134,7 @@ class Main extends Component {
                 OUGSelected
             });
     };
+
     handleCloseSetting() {
         this.setState(
             {
@@ -129,7 +142,6 @@ class Main extends Component {
 
             });
     };
-
 
     handleSaveSetting() {
         const D2API = new DHIS2Api(this.props.d2);
@@ -140,7 +152,7 @@ class Main extends Component {
             D2API.upSetting(this.state.settingApp);
         this.handleCloseSetting();
     }
-    
+
 
     handleSelectSupervisor(event, index, value) {
         let volunteer = this.state.volunteer.orgUnitGroups
@@ -177,13 +189,13 @@ class Main extends Component {
         return (
             <div>
                 <Dialog
-                    title={this.state.OUSelected!=null?this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT"):this.props.d2.i18n.getTranslation("TITLE_DIALOG_CREATE")}
+                    title={this.state.OUSelected != null ? this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT") : this.props.d2.i18n.getTranslation("TITLE_DIALOG_CREATE")}
                     modal={false}
                     open={this.state.openEditOu}
                     onRequestClose={() => this.handleCloseVolunteer()}
                     style={localStyle.Dialog}
                 >
-                    <EditOu d2={this.props.d2} volunterUser={this.state.volunterUser} volunteerOU={this.state.OUSelected} handleClose={() => this.handleCloseVolunteer()} mode={this.state.OUSelected!=null?"edit":"create"}/>
+                    <EditOu d2={this.props.d2} volunterUser={this.state.volunterUser} volunteerOU={this.state.OUSelected} handleClose={() => this.handleCloseVolunteer()} mode={this.state.OUSelected != null ? "edit" : "create"} />
                 </Dialog>
             </div>
         )
@@ -195,21 +207,21 @@ class Main extends Component {
         const { d2 } = this.props;
         const actions = [
             <RaisedButton
-            label={d2.i18n.getTranslation("BTN_CANCEL")}
-            primary={true}
-            keyboardFocused={false}
-            onClick={() => this.handleCloseSetting()}
-            style={{margin:5}}
+                label={d2.i18n.getTranslation("BTN_CANCEL")}
+                primary={true}
+                keyboardFocused={false}
+                onClick={() => this.handleCloseSetting()}
+                style={{ margin: 5 }}
             />,
             <RaisedButton
                 label={d2.i18n.getTranslation("BTN_SAVE")}
                 primary={true}
                 keyboardFocused={true}
                 onClick={() => this.handleSaveSetting(D2API)}
-                style={{margin:5}}
+                style={{ margin: 5 }}
             />
 
-        
+
         ];
         return (
             <div>
@@ -226,6 +238,39 @@ class Main extends Component {
             </div>
         )
 
+    }
+
+    renderDialogMove() {
+        const { d2 } = this.props;
+        const actions = [
+            <RaisedButton
+                label={d2.i18n.getTranslation("BTN_CANCEL")}
+                primary={true}
+                keyboardFocused={true}
+                onClick={() => this.handleCloseDialogMove()}
+                style={{ margin: 5 }}
+            />,
+            <RaisedButton
+                label={d2.i18n.getTranslation("BTN_DISCARD")}
+                primary={true}
+                keyboardFocused={true}
+                onClick={() => this.handleCloseDialogMove()}
+                style={{ margin: 5 }}
+            />
+        ];
+        return (
+            <div>
+                <Dialog
+                    title={this.props.d2.i18n.getTranslation("TITLE_DIALOG_MOVE")}
+                    actions={actions}
+                    modal={false}
+                    open={this.state.openDialogMove}
+                    onRequestClose={() => this.handleCloseDialogMove()}
+                >
+                    <p>{this.props.d2.i18n.getTranslation("TITLE_DIALOG_MESSAGE")}</p>
+                </Dialog>
+            </div>
+        )
     }
 
     renderOUTable() {
@@ -246,7 +291,7 @@ class Main extends Component {
                             targetOrigin={{ horizontal: 'right', vertical: 'top' }}
                         >
                             <MenuItem primaryText="Edit" leftIcon={<PersonEdit />} onClick={() => this.handleOpenVolunteer(ou)} />
-                            <MenuItem primaryText="Move" leftIcon={<PersonMove />} />
+                            <MenuItem primaryText="Move" leftIcon={<PersonMove />} onClick={() => this.handleOpenDialog()} />
                             <MenuItem primaryText="Disabled" leftIcon={<PersonDisabled />} />
                         </IconMenu>
                     </TableRowColumn>
@@ -255,17 +300,17 @@ class Main extends Component {
         })
 
     }
-    componentDidMount(){
+    componentDidMount() {
         this.getSupervisors()
         this.getUsers()
     }
-    shouldComponentUpdate(nextProps, nextState){
-        if(this.state.OUGList!=nextState.OUGList){
-            this.handleSelectSupervisor("","",nextState.OUGList[0].id)            
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.state.OUGList != nextState.OUGList) {
+            this.handleSelectSupervisor("", "", nextState.OUGList[0].id)
         }
         return true;
     }
-    
+
     render() {
         const { d2 } = this.props;
         return (
@@ -317,6 +362,7 @@ class Main extends Component {
                         </TableBody>
                     </Table>
                     {this.renderDialogEditOU()}
+                    {this.renderDialogMove()}
                 </div>
                 <FloatingActionButton style={localStyle.fabButom} onClick={() => this.handleOpenVolunteer()}>
                     <ContentAdd />
