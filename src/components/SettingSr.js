@@ -3,6 +3,7 @@ import TextField from 'material-ui/TextField';
 import theme from '../theme'
 import DHIS2Api from './DHIS2API';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
+import RaisedButton from 'material-ui/RaisedButton';
 
 const localstyle = {
     divForm: {
@@ -64,14 +65,7 @@ class SettingSr extends React.Component {
             remoteConnect: true,
         }
     }
-    async getSupervisor(filter) {
-        const D2API = new DHIS2Api(this.props.d2);
-        const OUG = await D2API.getOrgUnitGroups("/" + filter);
-        //console.log(JSON.stringify(OUG));
-        this.setState({ OUG });
-    }
-
-    validateSupervisor(value) {
+       validateSupervisor(value) {
         if (value.length === 11) {
             return true;
         } else {
@@ -96,13 +90,22 @@ class SettingSr extends React.Component {
         let MyArray = value.split(',');
         let i = 0;
         let validatePas = false
-        for (i = 0; i <= MyArray.length; i++) {
+        for (i = 0; i < MyArray.length; i++) {
             if (MyArray[i].length == 11) {
                 validatePas = true
             } else {
                 validatePas = false
             }
         } return validatePas
+    }
+    validateUserProgram(value) {
+        let validatePas = false
+            if (value.length == 11) {
+                validatePas = true
+            } else {
+                validatePas = false
+            }
+         return validatePas
     }
 
     validateLatitudeRange(value) {
@@ -187,6 +190,14 @@ class SettingSr extends React.Component {
                     settingApp[errorKey] = errorText
                 }
                 break;
+            case 'program':
+                if (this.validateUserProgram(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_PROGRAM")
+                    settingApp[errorKey] = errorText
+                }
+                break;
             case 'latitudeRange':
                 if (this.validateLatitudeRange(value)) {
                     settingApp[errorKey] = ""
@@ -241,14 +252,38 @@ class SettingSr extends React.Component {
         settingApp[key] = value
         this.setState({ settingApp });
     }
+    handleCloseSetting() {
+        this.props.handleClose();
+    };
+    handleSaveSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        //Create 
+        if (this.state.firstSetting == true)
+            D2API.setSetting(this.state.settingApp);
+        else //update
+            D2API.upSetting(this.state.settingApp);
+        this.handleCloseSetting();
+    }
+    async getSetting() {
+        const D2API = new DHIS2Api(this.props.d2);
+        const settingApp = await D2API.getSetting();
+        if(settingApp=={} ||Object.keys(settingApp).length==0 ){
+            this.setState({ firstSetting:true });
+        }
+        else{
+            this.setState({ firstSetting:false,settingApp });
+        }
+
+        
+    }
     componentDidMount() {
-        const idSubRecipient = this.props.OUGSelected;
-        this.getSupervisor(idSubRecipient);
+        this.getSetting();
     }
     render() {
         const { d2 } = this.props;
-        const idSubRecipient = this.props.OUGSelected;
+        const idSubRecipient = this.props.OUGSelected.id;
         return (
+            <div>
             <div style={localstyle.divForm}>
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_SUBRECIPIENT_ID")}
@@ -262,6 +297,13 @@ class SettingSr extends React.Component {
                     value={this.state.settingApp.supervisor}
                     onChange={(event, index, value) => this.handleSetValueForm("supervisor", value, event, index)}
                     errorText={this.state.settingApp.supervisorError}
+                />
+                <TextField
+                    floatingLabelText={d2.i18n.getTranslation("LABEL_PROGRAM_ID")}
+                    style={theme.volunteerForm.textBox}
+                    value={this.state.settingApp.program}
+                    onChange={(event, index, value) => this.handleSetValueForm("program", value, event, index)}
+                    errorText={this.state.settingApp.programError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_USER_ROL_CREATION_ID")}
@@ -332,6 +374,21 @@ class SettingSr extends React.Component {
                     errorText={this.state.settingApp.passwordUserError}
                     disabled={this.state.remoteConnect}
                 />
+            </div>
+                    <RaisedButton
+                    label={d2.i18n.getTranslation("BTN_CANCEL")}
+                    primary={true}
+                    keyboardFocused={false}
+                    onClick={() => this.handleCloseSetting()}
+                    style={{margin:5}}
+                    />,
+                    <RaisedButton
+                        label={d2.i18n.getTranslation("BTN_SAVE")}
+                        primary={true}
+                        keyboardFocused={true}
+                        onClick={() => this.handleSaveSetting()}
+                        style={{margin:5}}
+                    />
             </div>
         )
     }

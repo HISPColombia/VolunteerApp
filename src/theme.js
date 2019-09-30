@@ -47,11 +47,12 @@ const theme = {
     },
     volunteerForm:{ 
         textBox:{            
-            maxWidth:255,
-            margin:10
+            maxWidth:320,
+            margin:10,
+            width:320
         },
        textBoxAuto:{
-            maxWidth:520,
+            maxWidth:660,
             margin:10
         },
         urlInput:{
@@ -59,10 +60,11 @@ const theme = {
             width:'100%',
             maxWidth:530,
         },       
-        selectField:{
-            marginTop:20,          
-            maxWidth:255,
-            margin:10
+        selectField:{         
+            maxWidth:320,
+            width:320,
+            margin:10,
+
         },
         textError:{
             color:red400

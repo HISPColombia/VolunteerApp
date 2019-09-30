@@ -7,10 +7,14 @@ class DHIS2Api{
         const api = this.d2.Api.getApi();
         let result = {};
         try {
-            let res = await api.get('/' + resource+"?"+param);
-            if (res.hasOwnProperty(resource)) {
-                return res;
-            }
+            let res={};
+            if(param!=undefined)
+                res = await api.get('/' + resource+"?"+param);
+            else
+                res = await api.get('/' + resource);
+            //if (res.hasOwnProperty(resource)) {
+            return res;
+            //}
         }
         catch (e) {
             console.error('Could not access to API Resource');
@@ -29,10 +33,34 @@ class DHIS2Api{
         }
         return result;
     }
+    async delResourceSelected(resource,payload) {
+        const api = this.d2.Api.getApi();
+        let result = {};
+        try {
+            let res = await api.delete('/' + resource,payload);
+            return res;            
+        }
+        catch (e) {
+            console.error('Could not access to API Resource');
+        }
+        return result;
+    }
+    async putResourceSelected(resource,payload) {
+        const api = this.d2.Api.getApi();
+        let result = {};
+        try {
+            let res = await api.update('/' + resource,payload);
+            return res;            
+        }
+        catch (e) {
+            console.error('Could not access to API Resource');
+        }
+        return result;
+    }
     //get methods
     async getOrgUnit(filter){
         const resource="organisationUnits"
-        const param="fields=id,parent,code,level,name,shortName,openingDate,closedDate,phoneNumber,email,organisationUnitGroups"+(filter==undefined?"":filter)
+        const param="fields=id,parent[id,name,parent[id,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })
@@ -47,8 +75,21 @@ class DHIS2Api{
     }
     async getOrgUnitGroups(filter){
         const resource="organisationUnitGroupSets"
-        const param="fields=organisationUnitGroups[id,name]"+(filter==undefined?"":filter)
+        const param="fields=organisationUnitGroups[id,name,code]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
+            return(res[resource])
+        })
+    }
+    async getProgram(filter){
+        const resource="programs/"+filter
+        const param="fields=*"
+        return await this.getResourceSelected(resource,param).then(res =>{           
+            return(res)
+        })
+    }
+    async setProgram(uid,payload){
+        const resource="programs/"+uid
+          return await this.putResourceSelected(resource,payload).then(res =>{           
             return(res[resource])
         })
     }
@@ -58,11 +99,17 @@ class DHIS2Api{
             return(res[resource])
         })
     }
+    async delOrgUnitGroups(oug,ou){
+        const resource="organisationUnitGroups/"+oug+"/organisationUnits/"+ou
+          return await this.delResourceSelected(resource,{}).then(res =>{           
+            return(res[resource])
+        })
+    }
     async getUsers(filter){
         // code en la Unidad Organizativa igual que el name del usuario
         // name de la Unidad ORganizativa es igual que firtName, Surname del usuario
         const resource="users"
-        const param="fields=name,firstName,surname,phoneNumber,userCredentials[username]"+(filter==undefined?"":filter)
+        const param="fields=id,name,firstName,surname,phoneNumber,dataViewOrganisationUnits,organisationUnits,teiSearchOrganisationUnits,userCredentials[*]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })
@@ -71,11 +118,24 @@ class DHIS2Api{
         const resource="userSettings/keyUiLocale"
         const param="user="+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{  
-           return("en")//return(res)
+           return(res)
+        })
+    }
+    async getLangDB(filter){
+        const resource="userSettings/keyDbLocale"
+        const param="user="+(filter==undefined?"":filter)
+        return await this.getResourceSelected(resource,param).then(res =>{  
+           return(res)
         })
     }
     async setLangUsers(filter){
         const resource="userSettings/keyUiLocale"+filter
+        return await this.setResourceSelected(resource,{}).then(res =>{  
+           return("en")//return(res)
+        })
+    }
+    async setLangDB(filter){
+        const resource="userSettings/keyDbLocale"+filter
         return await this.setResourceSelected(resource,{}).then(res =>{  
            return("en")//return(res)
         })
@@ -93,17 +153,30 @@ class DHIS2Api{
             return(res)
         })
     }
+    //up methods
+    async upOrgUnit(payload){
+        const resource="organisationUnits/"+payload.id
+        return await this.putResourceSelected(resource,payload).then(res =>{           
+            return(res)
+        })
+    }
+    async upUser(payload){
+        const resource="users/"+payload.id
+        return await this.putResourceSelected(resource,payload).then(res =>{           
+            return(res)
+        })
+    }
     async setSetting(data) {
-        let url = "dataStore/VolunteerApp/setting"
+        let url = "dataStore/VolunteerAppSetting/global"
         return await this.setResourceSelected(url, data)
     }
     async upSetting(data) {
-        let url = "dataStore/VolunteerApp/setting"
-        return await this.upResourceSelected(url, data)
+        let url = "dataStore/VolunteerAppSetting/global"
+        return await this.putResourceSelected(url, data)
     }
 
     async getSetting() {
-        let url = "dataStore/VolunteerApp/setting"
+        let url = "dataStore/VolunteerAppSetting/global"
         return await this.getResourceSelected(url)
     }
 }

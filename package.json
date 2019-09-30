@@ -21,7 +21,7 @@
     "validate": "npm ls",
     "prestart": "d2-manifest package.json manifest.webapp",
     "manifest": "d2-manifest package.json build/manifest.webapp",
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --hot --host localhost",
     "dist_win": "npm run build_win && npm run postbuild_win_globalnpm",
     "dist": "npm run build && npm run postbuild && cd build && zip -r volunteer-app.zip * && cd .."
   },
@@ -35,6 +35,7 @@
     "d2-ui": "29.0.29",
     "d2-utilizr": "0.2.15",
     "material-ui": "^0.20.0",
+    "react-input-mask": "^2.0.4",
     "webpack-cli": "^3.1.1"
   },
   "devDependencies": {
@@ -67,7 +68,7 @@
     "test"
   ],
   "manifest.webapp": {
-    "name": "Volunteer App 0.2",
+    "name": "Volunteer App 1.0. RC3",
     "icons": {
       "48": "icon.png"
     },

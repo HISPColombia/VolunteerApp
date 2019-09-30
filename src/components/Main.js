@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import IconButton from 'material-ui/IconButton';
-import Supervised from 'material-ui/svg-icons/action/account-circle';
+
 import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
+
 import Badge from 'material-ui/Badge';
 import {
     Table,
@@ -26,7 +26,7 @@ import SelectField from 'material-ui/SelectField';
 import theme from '../theme';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
-
+import Snackbar from 'material-ui/Snackbar';
 
 //My Components
 import EditOu from './EditOu';
@@ -40,6 +40,10 @@ const localStyle = {
     },
     Dialog: {
         maxWidth: 900
+    },
+    DialogEdit: {
+        maxWidth: 900,
+        height:600
     },
     fabButom: {
         position: 'absolute',
@@ -71,14 +75,25 @@ class Main extends Component {
             openEditOu: false,
             openSetting: false,
             OUSelected: null,
-            OUGSelected: null,
-            disabledSetting: true
+            OUGSelected: { id: "" },
+            disabledSetting: true,
+            openmsg:false,
+            message:""
         }
     }
-    async getSupervisors() {
+    async getSetting() {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.orgUnitGroupSet);
+        const settingApp = await D2API.getSetting();
+        this.setState({settingApp });  
+    }
+    async getSubRecipient(subrecipient) {
+        const D2API = new DHIS2Api(this.props.d2);
+        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.SubRecipient);
         this.setState({ OUGList:OUGList[0].organisationUnitGroups});
+        if(subrecipient==undefined)
+            this.handleSelectSubrecipient("","",this.state.OUGList[0])
+        else
+            this.handleSelectSubrecipient("","",subrecipient)  
     }
 
     async getOrgUnit(filter) {
@@ -111,10 +126,24 @@ class Main extends Component {
             });
     };
 
-    handleCloseVolunteer() {
+    handleCloseVolunteer(subrecipient) {
         this.setState({ openEditOu: false });
-    };
+        //this.getSubRecipient(subrecipient)
+        this.getOrgUnit(subrecipient.id);
+        this.getUsers()
 
+    };
+    handleMessagesApp(message){
+        this.setState({
+            message:message,
+            openmsg: true,
+          });
+    }
+    handleRequestClose(){
+        this.setState({
+            openmsg: false,
+        });
+      };
     handleOpenSetting(OUGSelected) {
         this.setState(
             {
@@ -128,47 +157,25 @@ class Main extends Component {
                 openSetting: false,
 
             });
-    };
+    };   
 
-
-    handleSaveSetting() {
-        const D2API = new DHIS2Api(this.props.d2);
-        //Create 
-        if (this.state.fistSetting == true)
-            D2API.setSetting(this.state.settingApp);
-        else //update
-            D2API.upSetting(this.state.settingApp);
-        this.handleCloseSetting();
-    }
-    
-
-    handleSelectSupervisor(event, index, value) {
-        let volunteer = this.state.volunteer.orgUnitGroups
-        volunteer["orgUnitGroups"] = [{ id: value }]
+    handleSelectSubrecipient(event, index, value) {
+        let volunteer = this.state.volunteer; 
+        volunteer["orgUnitGroups"] = [value]
         this.setState({ volunteer });
-        this.getOrgUnit(value);
+        this.getOrgUnit(value.id);
         let disabledSetting = false;
         const OUGSelected = value;
+        this.getSetting() 
         this.setState({ OUGSelected })
         this.setState({ disabledSetting })
     }
 
-    async getSetting() {
-        const D2API = new DHIS2Api(this.props.d2);
-        //get Setting
-        const settingApp = await D2API.getSetting()
-        //first time
-        let fistSetting = false;
-        if (Object.keys(settingApp).length == 0)
-            fistSetting = true;
-        this.setState({ settingApp, fistSetting });
-        //
-    }
 
-    renderSupervisor() {
+    renderSubrecipient() {
         return this.state.OUGList.map(group => {
             return (
-                <MenuItem value={group.id} primaryText={group.name} />
+                <MenuItem key={group.id} value={group} primaryText={group.name} />
             )
         })
     }
@@ -177,51 +184,31 @@ class Main extends Component {
         return (
             <div>
                 <Dialog
-                    title={this.state.OUSelected!=null?this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT"):this.props.d2.i18n.getTranslation("TITLE_DIALOG_CREATE")}
+                    title={(this.state.OUSelected!=null?this.props.d2.i18n.getTranslation("TITLE_DIALOG_EDIT"):this.props.d2.i18n.getTranslation("TITLE_DIALOG_CREATE"))+" on subrecipient "+this.state.volunteer.orgUnitGroups[0].name}
                     modal={false}
                     open={this.state.openEditOu}
-                    onRequestClose={() => this.handleCloseVolunteer()}
-                    style={localStyle.Dialog}
+                    style={localStyle.DialogEdit}
                 >
-                    <EditOu d2={this.props.d2} volunterUser={this.state.volunterUser} volunteerOU={this.state.OUSelected} handleClose={() => this.handleCloseVolunteer()} mode={this.state.OUSelected!=null?"edit":"create"}/>
+                    <EditOu settingApp={this.state.settingApp} subrecipient={this.state.volunteer.orgUnitGroups[0]} d2={this.props.d2} volunterUser={this.state.volunterUser} volunteerOU={this.state.OUSelected} handleMessagesApp={this.handleMessagesApp.bind(this)}   handleClose={this.handleCloseVolunteer.bind(this)} mode={this.state.OUSelected!=null?"edit":"create"}/>
                 </Dialog>
             </div>
         )
 
-    }
+    }                                                  
 
     renderDialogSettingsSr() {
         const D2API = new DHIS2Api(this.props.d2);
         const { d2 } = this.props;
-        const actions = [
-            <RaisedButton
-            label={d2.i18n.getTranslation("BTN_CANCEL")}
-            primary={true}
-            keyboardFocused={false}
-            onClick={() => this.handleCloseSetting()}
-            style={{margin:5}}
-            />,
-            <RaisedButton
-                label={d2.i18n.getTranslation("BTN_SAVE")}
-                primary={true}
-                keyboardFocused={true}
-                onClick={() => this.handleSaveSetting(D2API)}
-                style={{margin:5}}
-            />
-
-        
-        ];
         return (
             <div>
                 <Dialog
                     title={this.props.d2.i18n.getTranslation("TITLE_DIALOG_SETTING")}
-                    actions={actions}
                     modal={false}
                     open={this.state.openSetting}
                     onRequestClose={() => this.handleCloseSetting()}
                     style={localStyle.Dialog}
                 >
-                    <SettingSr d2={this.props.d2} OUGSelected={this.state.OUGSelected} />
+                <SettingSr handleClose={() => this.handleCloseSetting()} d2={this.props.d2} OUGSelected={this.state.OUGSelected} />
                 </Dialog>
             </div>
         )
@@ -232,7 +219,7 @@ class Main extends Component {
         const OUList = this.state.OUList
         return OUList.map(ou => {
             return (
-                <TableRow className="col-hide"> key={ou.id}>
+                <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
@@ -256,37 +243,31 @@ class Main extends Component {
 
     }
     componentDidMount(){
-        this.getSupervisors()
+        this.getSubRecipient(undefined)
         this.getUsers()
-    }
-    shouldComponentUpdate(nextProps, nextState){
-        if(this.state.OUGList!=nextState.OUGList){
-            this.handleSelectSupervisor("","",nextState.OUGList[0].id)            
-        }
-        return true;
     }
     
     render() {
         const { d2 } = this.props;
+
         return (
             <div className='contMain'>
                 <div className='barApp'>
                     <div className='barAppLeft'>
                         <SelectField
                             floatingLabelText={d2.i18n.getTranslation("LABEL_SUBRECIPIENT")}
-                            value={this.state.volunteer.orgUnitGroups[0].id}
+                            value={this.state.volunteer.orgUnitGroups[0]}
                             style={theme.volunteerForm.textBox}
-                            onChange={this.handleSelectSupervisor.bind(this)}
+                            onChange={this.handleSelectSubrecipient.bind(this)}
                         >
-                            {this.renderSupervisor()}
+                            {this.renderSubrecipient()}
                         </SelectField>
                         <Badge
                             badgeContent={this.state.countUser}
                             primary={true}
                             badgeStyle={{ top: -8, right: 0, width: 36, height: 36 }}
                         >
-
-                        </Badge>
+                         </Badge>
                     </div>
                     <div className='barAppRight'><IconMenu className='appBarIconMore'
                         iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
@@ -321,6 +302,12 @@ class Main extends Component {
                 <FloatingActionButton style={localStyle.fabButom} onClick={() => this.handleOpenVolunteer()}>
                     <ContentAdd />
                 </FloatingActionButton>
+                <Snackbar
+            open={this.state.openmsg}
+            message={this.state.message}
+            autoHideDuration={4000}
+            onRequestClose={()=>this.handleRequestClose()}
+        />
             </div>
         )
     }

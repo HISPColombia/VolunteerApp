@@ -10,6 +10,7 @@ manifest.webapp
 .eslintignore
 .eslintrc
 .scss-lint.yml
+webpack.config.js
 
 # Misc files
 npm-debug.log
