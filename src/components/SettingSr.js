@@ -65,7 +65,14 @@ class SettingSr extends React.Component {
             remoteConnect: true,
         }
     }
-       validateSupervisor(value) {
+    validateSubrecipient(value) {
+        if (value.length === 11) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    validateSupervisor(value) {
         if (value.length === 11) {
             return true;
         } else {
@@ -166,6 +173,14 @@ class SettingSr extends React.Component {
         let errorKey = key + "Error"
         let errorText = ""
         switch (key) {
+            case 'subrecipient':
+                if (this.validateSubrecipient(value)) {
+                    settingApp[errorKey] = ""
+                } else {
+                    errorText = d2.i18n.getTranslation("ERROR_TEXT_SUBRECIPIENT")
+                    settingApp[errorKey] = errorText
+                }
+                break;
             case 'supervisor':
                 if (this.validateSupervisor(value)) {
                     settingApp[errorKey] = ""
@@ -288,8 +303,9 @@ class SettingSr extends React.Component {
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_SUBRECIPIENT_ID")}
                     style={theme.volunteerForm.textBox}
-                    value={idSubRecipient}
-                    disabled={true}
+                    value={this.state.settingApp.subrecipient}
+                    onChange={(event, index, value) => this.handleSetValueForm("subrecipient", value, event, index)}
+                    errorText={this.state.settingApp.subrecipientError}
                 />
                 <TextField
                     floatingLabelText={d2.i18n.getTranslation("LABEL_SUPERVISOR_OUGS_ID")}

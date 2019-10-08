@@ -32,7 +32,6 @@ import Snackbar from 'material-ui/Snackbar';
 import EditOu from './EditOu';
 import SettingSr from './SettingSr';
 import DHIS2Api from './DHIS2API';
-import setting from '../setting.json'
 
 const localStyle = {
     Main: {
@@ -76,7 +75,7 @@ class Main extends Component {
             openSetting: false,
             OUSelected: null,
             OUGSelected: { id: "" },
-            disabledSetting: true,
+            disabledSetting: false,
             openmsg:false,
             message:""
         }
@@ -88,7 +87,7 @@ class Main extends Component {
     }
     async getSubRecipient(subrecipient) {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + setting.SubRecipient);
+        const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + this.state.settingApp.subrecipient);
         this.setState({ OUGList:OUGList[0].organisationUnitGroups});
         if(subrecipient==undefined)
             this.handleSelectSubrecipient("","",this.state.OUGList[0])
@@ -242,7 +241,8 @@ class Main extends Component {
         })
 
     }
-    componentDidMount(){
+    async componentDidMount(){
+        await this.getSetting() 
         this.getSubRecipient(undefined)
         this.getUsers()
     }
