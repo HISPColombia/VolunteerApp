@@ -58,12 +58,21 @@ body{
 }
 .barAppLeft{
     float: left;
-    box-sizing: border-box;
 }
 
 .barAppRight{
     float: right;
-    box-sizing: border-box;
+}
+.barAppCenter{
+    float: left;
+    padding-left: 30px;
+    padding-top: 12px;
+    width: 400px;
+    
+    
+}
+.textToSEarch{
+    width: 1000px,
 }
 .appBarIconMore {
     z-index: 998!important;

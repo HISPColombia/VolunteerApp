@@ -27,11 +27,14 @@ import theme from '../theme';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import Snackbar from 'material-ui/Snackbar';
+import {blue500, red500, greenA200} from 'material-ui/styles/colors';
 
 //My Components
 import EditOu from './EditOu';
 import SettingSr from './SettingSr';
 import DHIS2Api from './DHIS2API';
+import { TextField } from 'material-ui';
+import { green500 } from 'material-ui/styles/colors';
 
 const localStyle = {
     Main: {
@@ -77,7 +80,8 @@ class Main extends Component {
             OUGSelected: { id: "" },
             disabledSetting: false,
             openmsg:false,
-            message:""
+            message:"",
+            searchByName:""
         }
     }
     async getSetting() {
@@ -97,12 +101,16 @@ class Main extends Component {
 
     async getOrgUnit(filter) {
         const D2API = new DHIS2Api(this.props.d2);
-        const OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter);
+        var OUList=[]   
+        if(this.state.searchByName.length>=3)
+            OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&filter=name:like:"+this.state.searchByName+"&pageSize=25");        
         this.setState({ OUList,countUser:OUList.length});
     }
     async getUsers(){
         const D2API = new DHIS2Api(this.props.d2);
-        const UsersList=await D2API.getUsers("&paging=false");
+        var UsersList=[]
+        if(this.state.searchByName.length>=3)
+            UsersList=await D2API.getUsers("&paging=false&filter=name:like:"+this.state.searchByName);
         this.setState({UsersList});
     }
       //Buscar que el usuario exista en la lista  
@@ -113,6 +121,13 @@ class Main extends Component {
             }                
         })
       }
+
+    handleSetValueForm(key, value, event, index) {
+        this.setState({searchByName:value})
+        this.getOrgUnit(this.state.volunteer.orgUnitGroups[0].id);
+        this.getUsers();
+        
+    }
     handleOpenVolunteer(OUSelected) {
         var volunterUser={}
         if(OUSelected!=undefined)
@@ -220,9 +235,9 @@ class Main extends Component {
             return (
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={green500} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={this.findUser(ou.code)==undefined?red500:green500} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
                     <TableRowColumn className="colEnd">{ou.lastUpdated}</TableRowColumn>
                     <TableRowColumn className="colEdit">
@@ -268,6 +283,17 @@ class Main extends Component {
                             badgeStyle={{ top: -8, right: 0, width: 36, height: 36 }}
                         >
                          </Badge>
+                        
+                    </div>
+                    <div className='barAppCenter'>
+                    <TextField className="textToSEarch"
+                        hintText="Type the name of the volunteer here"
+                        floatingLabelText="Search for a Volunteer"
+                        fullWidth={true}
+                        value={this.state.searchByName}
+                        onChange={(event, value) => this.handleSetValueForm("searchByName", value, event)}
+
+                        />
                     </div>
                     <div className='barAppRight'><IconMenu className='appBarIconMore'
                         iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}

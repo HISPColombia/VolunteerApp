@@ -12,8 +12,9 @@ import { generateUid } from 'd2/lib/uid';
 import Snackbar from 'material-ui/Snackbar';
 import Chip from 'material-ui/Chip';
 import CircularProgress from 'material-ui/CircularProgress';
-
+import ErrorIcon from 'material-ui/svg-icons/alert/error';
 import '../css/Volunteer.css';
+import { red500 } from 'material-ui/styles/colors';
 const localstyle = {
     divForm: { overflowY: 'auto', height: 300 },
     buttonsPanel: { paddingTop: 40, textAlign: "center" },
@@ -364,11 +365,8 @@ class EditOu extends React.Component {
     setValueForm() {
         this.getLanguage();
         const ouid= this.props.volunteerOU.id;
-        const userid= this.props.volunterUser.id;
         const code = this.props.volunteerOU.code;
         const fullname = this.props.volunteerOU.name;
-        const firstname = this.props.volunterUser.firstName;
-        const lastname = this.props.volunterUser.surname;
         const openingDate = new Date(this.props.volunteerOU.openingDate);
         const closedDate = (this.props.volunteerOU.closedDate == undefined ? "" : new Date(this.props.volunteerOU.closedDate));
         const parent = this.props.volunteerOU.parent.id;
@@ -385,13 +383,24 @@ class EditOu extends React.Component {
             supervisorName = superV.name;
        }
         const village = this.props.volunteerOU.shortName;
-        const villagegps = this.props.volunteerOU.coordinates.substring(1,this.props.volunteerOU.coordinates.length-1);
+        var villagegps="";
+        if( this.props.volunteerOU.coordinates!=undefined)
+            villagegps = this.props.volunteerOU.coordinates.substring(1,this.props.volunteerOU.coordinates.length-1);
 
         const password = "";
         const repeatpassword = "";
         const { language } = this.state;
         var email = this.props.volunteerOU.email == undefined ? "" : this.props.volunteerOU.email;
-        var phoneNumber = this.props.volunterUser.phoneNumber == undefined ? "" : this.props.volunterUser.phoneNumber;
+        var phoneNumber="",firstname="",lastname="",userid=""
+        if(this.props.volunterUser!=undefined){
+            firstname = this.props.volunterUser.firstName;
+            lastname = this.props.volunterUser.surname;
+            phoneNumber = this.props.volunterUser.phoneNumber == undefined ? "" : this.props.volunterUser.phoneNumber;
+            userid= this.props.volunterUser.id;
+        }
+        else{
+            this.state.lackUser=true
+        }
         let volunteer = {
             ouid,
             userid,
@@ -581,6 +590,7 @@ class EditOu extends React.Component {
                  <CircularProgress size={80} thickness={5} />
             </div>:""
              }
+            {this.state.lackUser==true?<div title={"Error, user doesn't exist"} style={{position:'absolute',top:0,left:'90%'}}><ErrorIcon color={red500}/></div>:""}
             <div className="wrapper" style={localstyle.divForm}>
                 <aside className="aside aside-1"><AutoComplete
                     hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
