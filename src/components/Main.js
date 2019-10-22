@@ -113,11 +113,26 @@ class Main extends Component {
             UsersList=await D2API.getUsers("&paging=false&filter=name:like:"+this.state.searchByName);
         this.setState({UsersList});
     }
+    async getOUPrograms(){
+        const D2API = new DHIS2Api(this.props.d2);
+        var OUProgram=[]
+        OUProgram=await D2API.getOUProgram(this.state.settingApp.program);
+        this.setState({OUProgram});
+    }
+    
       //Buscar que el usuario exista en la lista  
      findUser(userCode){
         return this.state.UsersList.find(user=>{           
             if(user.userCredentials.username==userCode){
                 return user;
+            }                
+        })
+      }
+      //Verificar que la OU esté asociada al programa
+      findOUinProgram(ouid){
+        return this.state.OUProgram.organisationUnits.find(ou=>{           
+            if(ou.id==ouid){
+                return ou;
             }                
         })
       }
@@ -232,14 +247,15 @@ class Main extends Component {
     renderOUTable() {
         const OUList = this.state.OUList
         return OUList.map(ou => {
+            const user=this.findUser(ou.code);
+            const ouExist=this.findOUinProgram(ou.id)
             return (
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={green500} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={this.findUser(ou.code)==undefined?red500:green500} /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
-                    <TableRowColumn className="colEnd">{ou.lastUpdated}</TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={user==undefined?red500:green500} /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
+                    <TableRowColumn className="colEnd"> {user==undefined?"User not associated":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>
                     <TableRowColumn className="colEdit">
                         <IconMenu
                             iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
@@ -260,6 +276,7 @@ class Main extends Component {
         await this.getSetting() 
         this.getSubRecipient(undefined)
         this.getUsers()
+        await this.getOUPrograms()
     }
     
     render() {
@@ -311,10 +328,9 @@ class Main extends Component {
                         <TableHeader displaySelectAll={false} className='titleTable'>
                             <TableRow>
                                 <TableHeaderColumn className="colIniHeader">Volunteer</TableHeaderColumn>
-                                <TableHeaderColumn className="colMiddleHeader">Local OU</TableHeaderColumn>
                                 <TableHeaderColumn className="colMiddleHeader">Remote OU</TableHeaderColumn>
                                 <TableHeaderColumn className="colMiddleHeader">User account</TableHeaderColumn>
-                                <TableHeaderColumn className="colMiddleHeader">User group</TableHeaderColumn>
+                                <TableHeaderColumn className="colMiddleHeader">Associated to program</TableHeaderColumn>
                                 <TableHeaderColumn className="colEndHeader">Last login</TableHeaderColumn>
                                 <TableHeaderColumn className="colEditHeader"></TableHeaderColumn>
                             </TableRow>

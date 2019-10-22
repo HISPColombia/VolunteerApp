@@ -179,6 +179,10 @@ class DHIS2Api{
         let url = "dataStore/VolunteerAppSetting/global"
         return await this.getResourceSelected(url)
     }
+    async getOUProgram(uid) {
+        let url = "programs/"+uid+"?fields=organisationUnits"
+        return await this.getResourceSelected(url)
+    }
 }
 
 export default DHIS2Api;
