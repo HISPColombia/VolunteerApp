@@ -79,9 +79,10 @@ class EditOu extends React.Component {
             const D2API = new DHIS2Api(this.props.d2);
             const OUGListFull = await D2API.getOrgUnitGroups("&filter=id:eq:" + this.props.settingApp.supervisor); //+"&filter=name:ilike:"+value
             let OUGList = []
-            if (OUGListFull.length > 0) {
-                OUGList = OUGListFull[0].organisationUnitGroups
-            }
+            if(OUGListFull!=undefined)
+                if (OUGListFull.length > 0) {
+                    OUGList = OUGListFull[0].organisationUnitGroups
+                }
             this.setState({ OUGList });
             return OUGList;
         }
@@ -102,13 +103,14 @@ class EditOu extends React.Component {
         const uidUser = generateUid();
         const uidCredential = generateUid();
         const uidOrgUnit = generateUid();
-
+        const longitude=this.state.volunteer.villagegps.split(",")[1]*1
+        const latitud=this.state.volunteer.villagegps.split(",")[0]*1
 
         var OU = {
             id: uidOrgUnit,
             code: this.state.volunteer.code,
             contactPerson: this.state.volunteer.firstname + " " + this.state.volunteer.lastname,
-            coordinates: "[" + this.state.volunteer.villagegps + "]",
+            coordinates: "[" + longitude+","+latitud + "]",
             email: this.state.volunteer.email,
             featureType: "POINT",
             name: this.state.volunteer.fullname,
@@ -144,19 +146,28 @@ class EditOu extends React.Component {
         let arrLen = ["en", "my", "zh"];
         const respOUSaved = await D2API.setOrgUnit(OU); //status: "OK"
         if (respOUSaved.status == "OK") {
+            //externalServer
+            if(this.props.settingApp.modeSetting=="Local_and_remote"){
+               const respoExternalOUSaved = await D2API.setExternalOrgUnit(this.props.settingApp,OU)
+               const respGrpuoAssigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.state.volunteer.supervisor, uidOrgUnit);
+               const respGrpuo2Assigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.props.subrecipient.id, uidOrgUnit);
+               console.log(respoExternalOUSaved)
+            }
+            //assign OrganisationUnitGroups
+            const respGrpuoAssigned = await D2API.setOrgUnitGroups(this.state.volunteer.supervisor, uidOrgUnit);
+                const respGrpuo2Assigned = await D2API.setOrgUnitGroups(this.props.subrecipient.id, uidOrgUnit);
+             //assign OU to program
+             const FullProgram = await D2API.getProgram(this.props.settingApp.program); //status: "OK"
+             FullProgram.organisationUnits.push({id:uidOrgUnit})
+             await D2API.setProgram(this.props.settingApp.program,FullProgram); //status: "OK"
+             if(this.props.settingApp.modeSetting=="Local_and_remote"){
+                 await D2API.setExernalProgram(this.props.settingApp,this.props.settingApp.program,FullProgram)
+             }
             const respUserSaved = await D2API.setUser(User);
             if (respUserSaved.status == "OK") {
                 const language = arrLen[this.state.volunteer.language];
                 const respLangUserSaved = await D2API.setLangUsers("?user=" + this.state.volunteer.code + "&value=" + language)
                 const respLangDb = await D2API.setLangDB("?user=" + this.state.volunteer.code + "&value=" + language)              
-                const respGrpuoAssigned = await D2API.setOrgUnitGroups(this.state.volunteer.supervisor, uidOrgUnit);
-                const respGrpuo2Assigned = await D2API.setOrgUnitGroups(this.props.subrecipient.id, uidOrgUnit);
-                //assing OU to program
-                const FullProgram = await D2API.getProgram(this.props.settingApp.program); //status: "OK"
-                FullProgram.organisationUnits.push({id:uidOrgUnit})
-                await D2API.setProgram(this.props.settingApp.program,FullProgram); //status: "OK"
-                
-                
                 ///
                 this.props.handleMessagesApp("The volunteer has been created")
                 this.props.handleClose(this.props.subrecipient,true);
@@ -178,16 +189,14 @@ class EditOu extends React.Component {
 
     }
     async upVolunteer() {
-
-        var userCredentials=this.props.volunterUser.userCredentials;
-        if( this.state.volunteer.password!=""){
-            userCredentials.password=this.state.volunteer.password
-        }
+        const longitude=this.state.volunteer.villagegps.split(",")[1]*1
+        const latitud=this.state.volunteer.villagegps.split(",")[0]*1
+        
         var OU = {
             id: this.state.volunteer.ouid,
             code: this.state.volunteer.code,
             contactPerson: this.state.volunteer.firstname + " " + this.state.volunteer.lastname,
-            coordinates: "[" + this.state.volunteer.villagegps + "]",
+            coordinates: "[" + longitude+","+latitud + "]",
             email: this.state.volunteer.email,
             featureType: "POINT",
             name: this.state.volunteer.fullname,
@@ -198,21 +207,63 @@ class EditOu extends React.Component {
         if(this.state.volunteer.closedDate!="" && this.state.volunteer.closedDate!=undefined){
             OU["closedDate"]=this.state.volunteer.closedDate.getFullYear() + "-" + (this.state.volunteer.closedDate.getMonth() + 1) + "-" + this.state.volunteer.closedDate.getDate()
         }
-        const User = {
-            attributeValues: [],
-            id: this.state.volunteer.userid,
-            dataViewOrganisationUnits: [{ id: this.state.volunteer.ouid }],
-            firstName: this.state.volunteer.firstname,
-            organisationUnits: [{ id: this.state.volunteer.ouid }],
-            surname: this.state.volunteer.lastname,
-            phoneNumber: this.state.volunteer.phoneNumber,
-            userCredentials
-        }
+       
         const D2API = new DHIS2Api(this.props.d2);
         let arrLen = ["en", "my", "zh"];
         const respOUSaved = await D2API.upOrgUnit(OU); //status: "OK"
+        var respUserSaved=""
         if (respOUSaved.status == "OK") {
-            const respUserSaved = await D2API.upUser(User);
+
+            //externalServer
+            if(this.props.settingApp.modeSetting=="Local_and_remote"){
+                const respoExternalOUSaved = await D2API.upExternalOrgUnit(this.props.settingApp,OU)
+             }
+
+            if(this.state.lackUser){
+                const uidUser = generateUid();
+                const uidCredential = generateUid();
+                const User = {
+                    attributeValues: [],
+                    id: uidUser,
+                    dataViewOrganisationUnits: [{ id: this.state.volunteer.ouid }],
+                    firstName: this.state.volunteer.firstname,
+                    organisationUnits: [{ id: this.state.volunteer.ouid }],
+                    surname: this.state.volunteer.lastname,
+                    phoneNumber: this.state.volunteer.phoneNumber,
+                    userCredentials: {
+                        id: uidCredential,
+                        catDimensionConstraints: [],
+                        cogsDimensionConstraints: [],
+                        externalAuth: false,
+                        password: this.state.volunteer.password,
+                        userInfo: { id: uidUser },
+                        userRoles: [{ id: this.props.settingApp.userRole}],
+                        username: this.state.volunteer.code              
+        
+                    },
+                    userGroups: [{ id: this.props.settingApp.userGroup }]//XCo6cPPctTl
+                }
+                 respUserSaved = await D2API.setUser(User);
+
+            }
+            else{
+                var userCredentials=this.props.volunterUser.userCredentials;
+                if( this.state.volunteer.password!=""){
+                    userCredentials.password=this.state.volunteer.password
+                }
+                const User = {
+                    attributeValues: [],
+                    id: this.state.volunteer.userid,
+                    dataViewOrganisationUnits: [{ id: this.state.volunteer.ouid }],
+                    firstName: this.state.volunteer.firstname,
+                    organisationUnits: [{ id: this.state.volunteer.ouid }],
+                    surname: this.state.volunteer.lastname,
+                    phoneNumber: this.state.volunteer.phoneNumber,
+                    userCredentials
+                }
+                respUserSaved = await D2API.upUser(User);
+            }
+           
             if (respUserSaved.status == "OK") {
                 const language = arrLen[this.state.volunteer.language];
                 const respLangUserSaved = await D2API.setLangUsers("?user=" + this.state.volunteer.code + "&value=" + language)
@@ -244,11 +295,14 @@ class EditOu extends React.Component {
             this.setState({ disabled: true });
         }
         else{
-            if(this.state.volunteer.language==""){
-                var volunteer=this.state.volunteer
-                volunteer["language"]=1;
-                this.setState({volunteer})
+            var volunteer=this.state.volunteer
+            if(this.state.volunteer.language==""){               
+                volunteer["language"]=1;              
             }
+            //currentDate
+             var f = new Date();
+            volunteer["openingDate"]= f;
+            this.setState({volunteer})
         }        
         this.setState({ validation: false });
     }
@@ -325,10 +379,10 @@ class EditOu extends React.Component {
         else{
             if (children.length > 0) {
                 let partFinal = "000000" + children.length;
-                return (subrecipientCode + "_" + townCode.substring(townCode.length - 6, townCode.length) + "_" + partFinal.substring(partFinal.length - 6, partFinal.length));
+                return (subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + townCode.substring(townCode.length - 6, townCode.length) + "_" + partFinal.substring(partFinal.length - 6, partFinal.length));
             }
             else {
-                return (subrecipientCode + "_" + townCode + "_00001");
+                return (subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + townCode.substring(townCode.length - 6, townCode.length) + "_00001");
             }
         }
 
@@ -371,6 +425,7 @@ class EditOu extends React.Component {
         const closedDate = (this.props.volunteerOU.closedDate == undefined ? "" : new Date(this.props.volunteerOU.closedDate));
         const parent = this.props.volunteerOU.parent.id;
         const parentName = this.props.volunteerOU.parent.name;
+       
         const superV= this.props.volunteerOU.organisationUnitGroups.find((ou)=>{
             return this.state.OUGList.find(oul=>{
                 return oul.id==ou.id
@@ -383,9 +438,15 @@ class EditOu extends React.Component {
             supervisorName = superV.name;
        }
         const village = this.props.volunteerOU.shortName;
+        
         var villagegps="";
-        if( this.props.volunteerOU.coordinates!=undefined)
-            villagegps = this.props.volunteerOU.coordinates.substring(1,this.props.volunteerOU.coordinates.length-1);
+        if( this.props.volunteerOU.coordinates!=undefined){
+            var villagegpsRaw = this.props.volunteerOU.coordinates.substring(1,this.props.volunteerOU.coordinates.length-1);  
+            const longitude=villagegpsRaw.split(",")[0]*1
+            const latitud=villagegpsRaw.split(",")[1]*1 
+            villagegps = latitud+","+longitude
+        }
+            
 
         const password = "";
         const repeatpassword = "";
@@ -399,7 +460,7 @@ class EditOu extends React.Component {
             userid= this.props.volunterUser.id;
         }
         else{
-            this.state.lackUser=true
+            this.setState({lackUser:true})
         }
         let volunteer = {
             ouid,
@@ -509,8 +570,8 @@ class EditOu extends React.Component {
                 error = true;
             }
             else{
-                const longitude=this.state.volunteer.villagegps.split(",")[0]*1
-                const latitud=this.state.volunteer.villagegps.split(",")[1]*1
+                const longitude=this.state.volunteer.villagegps.split(",")[1]*1
+                const latitud=this.state.volunteer.villagegps.split(",")[0]*1
                 const latmin=this.props.settingApp.latitudeRange.split(",")[0]*1
                 const latmax=this.props.settingApp.latitudeRange.split(",")[1]*1
                 const longmin=this.props.settingApp.longitudeRange.split(",")[0]*1
@@ -529,11 +590,11 @@ class EditOu extends React.Component {
             validateResult["lastname"] = false;
             error = true;
         }
-        if ((this.state.volunteer.password == "" && this.props.mode!="edit")||(this.state.volunteer.password != "" && this.props.mode=="edit")) {
+        if ((this.state.volunteer.password == "" && this.props.mode!="edit")) {
             validateResult["password"] = false;
             error = true;
         }
-        if ((this.state.volunteer.repeatpassword == ""&& this.props.mode!="edit")||(this.state.volunteer.repeatpassword != ""&& this.props.mode=="edit")) {
+        if ((this.state.volunteer.repeatpassword == ""&& this.props.mode!="edit")) {
             validateResult["repeatpassword"] = false;
             error = true;
         }

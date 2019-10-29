@@ -28,6 +28,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import Snackbar from 'material-ui/Snackbar';
 import {blue500, red500, greenA200} from 'material-ui/styles/colors';
+import RaisedButton from 'material-ui/RaisedButton';
 
 //My Components
 import EditOu from './EditOu';
@@ -104,7 +105,7 @@ class Main extends Component {
         var OUList=[]   
         if(this.state.searchByName.length>=3)
             OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&filter=name:like:"+this.state.searchByName+"&pageSize=25");        
-        this.setState({ OUList,countUser:OUList.length});
+        this.setState({ OUList,countUser:(OUList==undefined?0:OUList.length)});
     }
     async getUsers(){
         const D2API = new DHIS2Api(this.props.d2);
@@ -223,7 +224,45 @@ class Main extends Component {
             </div>
         )
 
-    }                                                  
+    }
+    
+    renderDialogMove(){
+        return(
+            <Dialog
+              title="Move Volunteer"
+              actions={<RaisedButton
+                label="Close"
+                primary={true}
+                keyboardFocused={true}
+                onClick={()=>this.setState({openMove: false})}
+              />}
+              modal={false}
+              open={this.state.openMove}
+              onRequestClose={()=>this.setState({openMove: false})}
+            >
+              Dear user, this option isn't available 
+            </Dialog>
+          )
+    }
+
+    async disabledVolunteer(user,ou){
+        const D2API = new DHIS2Api(this.props.d2);
+        if(user==undefined){
+            this.setState({openmsg:true,message:"Warinig, User does't available"})
+        }else{                  
+            const respUser=await D2API.disabledUser(user.id,{userCredentials: {disabled: true}})
+        }
+        var f = new Date();
+        ou["closedDate"]= f;
+        const respOUSaved = await D2API.upOrgUnit(ou); //status: "OK"
+        if (respOUSaved.status != "OK") {
+            this.setState({openmsg:true,message:"Error disabling volunteer, check the OrgUnit"})
+        }
+        else{
+            this.setState({openmsg:true,message:"Volunteer sucessfully disabled"})
+        }
+
+    }
 
     renderDialogSettingsSr() {
         const D2API = new DHIS2Api(this.props.d2);
@@ -256,6 +295,8 @@ class Main extends Component {
                     <TableRowColumn className="colMiddle"><FlagStatus color={user==undefined?red500:green500} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
                     <TableRowColumn className="colEnd"> {user==undefined?"User not associated":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>
+                    <TableRowColumn className="colEnd"> {user==undefined?"":(<FlagStatus color={user.userCredentials.disabled?red500:green500} />)}</TableRowColumn>
+                   
                     <TableRowColumn className="colEdit">
                         <IconMenu
                             iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
@@ -263,8 +304,8 @@ class Main extends Component {
                             targetOrigin={{ horizontal: 'right', vertical: 'top' }}
                         >
                             <MenuItem primaryText="Edit" leftIcon={<PersonEdit />} onClick={() => this.handleOpenVolunteer(ou)} />
-                            <MenuItem primaryText="Move" leftIcon={<PersonMove />} />
-                            <MenuItem primaryText="Disabled" leftIcon={<PersonDisabled />} />
+                            <MenuItem primaryText="Move" leftIcon={<PersonMove />} onClick={()=>this.setState({openMove: true})}/>
+                            <MenuItem primaryText="Disabled" leftIcon={<PersonDisabled />}  onClick={()=>this.disabledVolunteer(user,ou)}/>
                         </IconMenu>
                     </TableRowColumn>
                 </TableRow>
@@ -322,6 +363,7 @@ class Main extends Component {
                     </IconMenu>
                     </div>
                     {this.renderDialogSettingsSr()}
+                    {this.renderDialogMove()}
                 </div>
                 <div className='tableVolunteer'>
                     <Table fixedHeader={true} style={{ tableLayout: "auto" }}>
@@ -332,6 +374,7 @@ class Main extends Component {
                                 <TableHeaderColumn className="colMiddleHeader">User account</TableHeaderColumn>
                                 <TableHeaderColumn className="colMiddleHeader">Associated to program</TableHeaderColumn>
                                 <TableHeaderColumn className="colEndHeader">Last login</TableHeaderColumn>
+                                <TableHeaderColumn className="colEndHeader">Disabled</TableHeaderColumn>                                
                                 <TableHeaderColumn className="colEditHeader"></TableHeaderColumn>
                             </TableRow>
                         </TableHeader>

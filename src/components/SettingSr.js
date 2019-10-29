@@ -350,7 +350,7 @@ class SettingSr extends React.Component {
                     errorText={this.state.settingApp.longitudeRangeError}
                 />
                 <h4>{d2.i18n.getTranslation("LABEL_MODE")}</h4>
-                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} defaultSelected="Local" onChange={(event, index, value) => this.handleSetValueForm("modeSetting", value, event, index)}>
+                <RadioButtonGroup name="connection" style={localstyle.radioButtonG} valueSelected={this.state.settingApp.modeSetting==undefined?"Local":this.state.settingApp.modeSetting} onChange={(event, index, value) => this.handleSetValueForm("modeSetting", value, event, index)}>
                     <RadioButton
                         name="Local"
                         value="Local"

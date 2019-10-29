@@ -57,6 +57,18 @@ class DHIS2Api{
         }
         return result;
     }
+    async patchResourceSelected(resource,payload) {
+        const api = this.d2.Api.getApi();
+        let result = {};
+        try {
+            let res = await api.patch('/' + resource,payload);
+            return res;            
+        }
+        catch (e) {
+            console.error('Could not access to API Resource');
+        }
+        return result;
+    }
     //get methods
     async getOrgUnit(filter){
         const resource="organisationUnits"
@@ -166,6 +178,12 @@ class DHIS2Api{
             return(res)
         })
     }
+    async disabledUser(userID,payload){
+        const resource="users/"+userID
+        return await this.patchResourceSelected(resource,payload).then(res =>{           
+            return(res)
+        })
+    }
     async setSetting(data) {
         let url = "dataStore/VolunteerAppSetting/global"
         return await this.setResourceSelected(url, data)
@@ -182,6 +200,59 @@ class DHIS2Api{
     async getOUProgram(uid) {
         let url = "programs/"+uid+"?fields=organisationUnits"
         return await this.getResourceSelected(url)
+    }
+    ///Eternal setting
+
+    async SetResourceExternal(setting,url,method,body){    
+        let headers = new Headers(); 
+        headers.append('Content-Type', 'application/json');
+        headers.set('Authorization', 'Basic ' + Buffer.from(setting.user + ":" + setting.password).toString('base64'));
+        return fetch(url, 
+                {
+                method,
+                headers,
+                body
+                }).then(response => response.json())
+                .catch(error => console.error('Error:', error));
+        }
+
+    async GetResourceExternal(setting,url,method){
+        let headers = new Headers(); 
+        headers.append('Content-Type', 'application/json');
+        headers.set('Authorization', 'Basic ' + Buffer.from(setting.userId + ":" + setting.passwordUser).toString('base64'));
+        return fetch(url, 
+                {
+                method,
+                headers
+                }).then(response => response.json())
+                .catch(error => console.error('Error:', error));
+        }
+    /// setting OrgUnit
+     //set methods
+     async setExternalOrgUnit(setting,payload){
+        const resource=setting.remoteServer+"/api/"+"organisationUnits"
+        return await this.SetResourceExternal(setting,resource,"POST",payload).then(res =>{           
+            return(res)
+        })
+    }
+
+    async setExernalProgram(setting,uid,payload){
+        const resource=setting.remoteServer+"/api/"+"programs/"+uid
+          return await this.SetResourceExternal(setting,resource,"PUT",payload).then(res =>{           
+            return(res)
+        })
+    }
+    async setExernalOrgUnitGroups(setting,oug,ou){
+        const resource="organisationUnitGroups/"+oug+"/organisationUnits/"+ou
+          return await this.SetResourceExternal(setting,resource,"POST",{}).then(res =>{           
+            return(res)
+        })
+    }
+    async upExternalOrgUnit(setting,payload){
+        const resource=setting.remoteServer+"/api/"+"organisationUnits"+payload.id
+        return await this.SetResourceExternal(setting,resource,"PUT",payload).then(res =>{           
+            return(res)
+        })
     }
 }
 
