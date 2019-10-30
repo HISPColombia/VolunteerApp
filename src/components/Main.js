@@ -111,7 +111,7 @@ class Main extends Component {
         const D2API = new DHIS2Api(this.props.d2);
         var UsersList=[]
         if(this.state.searchByName.length>=3)
-            UsersList=await D2API.getUsers("&paging=false&filter=name:like:"+this.state.searchByName);
+            UsersList=await D2API.getUsers("&paging=false&query="+this.state.searchByName);
         this.setState({UsersList});
     }
     async getOUPrograms(){

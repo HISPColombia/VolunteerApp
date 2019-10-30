@@ -206,7 +206,7 @@ class DHIS2Api{
     async SetResourceExternal(setting,url,method,body){    
         let headers = new Headers(); 
         headers.append('Content-Type', 'application/json');
-        headers.set('Authorization', 'Basic ' + Buffer.from(setting.user + ":" + setting.password).toString('base64'));
+        headers.set('Authorization', 'Basic ' + Buffer.from(setting.userId + ":" + setting.passwordUser).toString('base64'));
         return fetch(url, 
                 {
                 method,
@@ -231,26 +231,26 @@ class DHIS2Api{
      //set methods
      async setExternalOrgUnit(setting,payload){
         const resource=setting.remoteServer+"/api/"+"organisationUnits"
-        return await this.SetResourceExternal(setting,resource,"POST",payload).then(res =>{           
+        return await this.SetResourceExternal(setting,resource,"POST",JSON.stringify(payload)).then(res =>{           
             return(res)
         })
     }
 
     async setExernalProgram(setting,uid,payload){
         const resource=setting.remoteServer+"/api/"+"programs/"+uid
-          return await this.SetResourceExternal(setting,resource,"PUT",payload).then(res =>{           
+          return await this.SetResourceExternal(setting,resource,"PUT",JSON.stringify(payload)).then(res =>{           
             return(res)
         })
     }
     async setExernalOrgUnitGroups(setting,oug,ou){
-        const resource="organisationUnitGroups/"+oug+"/organisationUnits/"+ou
+        const resource=setting.remoteServer+"/api/"+"organisationUnitGroups/"+oug+"/organisationUnits/"+ou
           return await this.SetResourceExternal(setting,resource,"POST",{}).then(res =>{           
             return(res)
         })
     }
     async upExternalOrgUnit(setting,payload){
-        const resource=setting.remoteServer+"/api/"+"organisationUnits"+payload.id
-        return await this.SetResourceExternal(setting,resource,"PUT",payload).then(res =>{           
+        const resource=setting.remoteServer+"/api/"+"organisationUnits/"+payload.id
+        return await this.SetResourceExternal(setting,resource,"PUT",JSON.stringify(payload)).then(res =>{           
             return(res)
         })
     }
