@@ -72,7 +72,7 @@ class DHIS2Api{
     //get methods
     async getOrgUnit(filter){
         const resource="organisationUnits"
-        const param="fields=id,parent[id,name,parent[id,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
+        const param="fields=id,parent[id,name,parent[id,name,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })

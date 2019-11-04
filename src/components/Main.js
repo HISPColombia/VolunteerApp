@@ -27,7 +27,7 @@ import theme from '../theme';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import Snackbar from 'material-ui/Snackbar';
-import {blue500, red500, greenA200} from 'material-ui/styles/colors';
+import {red500,grey500,green500,yellow500} from 'material-ui/styles/colors';
 import RaisedButton from 'material-ui/RaisedButton';
 
 //My Components
@@ -35,7 +35,7 @@ import EditOu from './EditOu';
 import SettingSr from './SettingSr';
 import DHIS2Api from './DHIS2API';
 import { TextField } from 'material-ui';
-import { green500 } from 'material-ui/styles/colors';
+
 
 const localStyle = {
     Main: {
@@ -100,18 +100,22 @@ class Main extends Component {
             this.handleSelectSubrecipient("","",subrecipient)  
     }
 
-    async getOrgUnit(filter) {
+    async getOrgUnit(filter,filter2) {
         const D2API = new DHIS2Api(this.props.d2);
-        var OUList=[]   
-        if(this.state.searchByName.length>=3)
-            OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&filter=name:like:"+this.state.searchByName+"&pageSize=25");        
+        var OUList=[] 
+        if(filter2==undefined)
+            filter2=this.state.searchByName  
+        if(filter2.length>=2)
+            OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&filter=name:like:"+filter2+"&pageSize=25");        
         this.setState({ OUList,countUser:(OUList==undefined?0:OUList.length)});
     }
-    async getUsers(){
+    async getUsers(filter){
         const D2API = new DHIS2Api(this.props.d2);
         var UsersList=[]
-        if(this.state.searchByName.length>=3)
-            UsersList=await D2API.getUsers("&paging=false&query="+this.state.searchByName);
+        if(filter==undefined)
+            filter=this.state.searchByName
+        if(filter.length>=2)
+            UsersList=await D2API.getUsers("&paging=false&query="+filter);
         this.setState({UsersList});
     }
     async getOUPrograms(){
@@ -130,18 +134,33 @@ class Main extends Component {
         })
       }
       //Verificar que la OU esté asociada al programa
-      findOUinProgram(ouid){
+    findOUinProgram(ouid){
         return this.state.OUProgram.organisationUnits.find(ou=>{           
             if(ou.id==ouid){
                 return ou;
             }                
         })
       }
+    
+    checkUser(ou,user){
+        if(user==undefined)
+            return red500
+        else{
+            if(user.userCredentials.disabled==true && ou.closedDate!="")
+                return grey500
+            else
+                if((user.userCredentials.disabled==true && ou.closedDate==undefined)||(user.userCredentials.disabled==false && ou.closedDate!=undefined))
+                    return yellow500
+                else
+                    return green500
+        }
+           
+      }
 
     handleSetValueForm(key, value, event, index) {
         this.setState({searchByName:value})
-        this.getOrgUnit(this.state.volunteer.orgUnitGroups[0].id);
-        this.getUsers();
+        this.getOrgUnit(this.state.volunteer.orgUnitGroups[0].id, value);
+        this.getUsers(value);
         
     }
     handleOpenVolunteer(OUSelected) {
@@ -156,11 +175,13 @@ class Main extends Component {
             });
     };
 
-    handleCloseVolunteer(subrecipient) {
+    async handleCloseVolunteer(subrecipient) {
         this.setState({ openEditOu: false });
+        await this.getOUPrograms()
         //this.getSubRecipient(subrecipient)
         this.getOrgUnit(subrecipient.id);
         this.getUsers()
+        
 
     };
     handleMessagesApp(message){
@@ -187,6 +208,7 @@ class Main extends Component {
                 openSetting: false,
 
             });
+        this.getSetting()
     };   
 
     handleSelectSubrecipient(event, index, value) {
@@ -292,11 +314,9 @@ class Main extends Component {
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={user==undefined?red500:green500} /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={this.checkUser(ou,user)} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
-                    <TableRowColumn className="colEnd"> {user==undefined?"User not associated":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>
-                    <TableRowColumn className="colEnd"> {user==undefined?"":(<FlagStatus color={user.userCredentials.disabled?red500:green500} />)}</TableRowColumn>
-                   
+                    <TableRowColumn className="colEnd"> {user==undefined?"":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>                  
                     <TableRowColumn className="colEdit">
                         <IconMenu
                             iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
@@ -373,8 +393,7 @@ class Main extends Component {
                                 <TableHeaderColumn className="colMiddleHeader">Remote OU</TableHeaderColumn>
                                 <TableHeaderColumn className="colMiddleHeader">User account</TableHeaderColumn>
                                 <TableHeaderColumn className="colMiddleHeader">Associated to program</TableHeaderColumn>
-                                <TableHeaderColumn className="colEndHeader">Last login</TableHeaderColumn>
-                                <TableHeaderColumn className="colEndHeader">Disabled</TableHeaderColumn>                                
+                                <TableHeaderColumn className="colEndHeader">Last login</TableHeaderColumn>                             
                                 <TableHeaderColumn className="colEditHeader"></TableHeaderColumn>
                             </TableRow>
                         </TableHeader>

@@ -68,7 +68,7 @@
     "test"
   ],
   "manifest.webapp": {
-    "name": "Volunteer App 1.0. RC6",
+    "name": "Volunteer App 1.0. RC7",
     "icons": {
       "48": "icon.png"
     },

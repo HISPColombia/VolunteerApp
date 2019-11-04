@@ -70,7 +70,14 @@ class EditOu extends React.Component {
     async searchParents(value) {
         //get list of OU leve 6
         const D2API = new DHIS2Api(this.props.d2);
-        const OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:ilike:" + value);
+        var OUList=[]
+        OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:ilike:" + value);
+        if(OUList!=undefined)
+            OUList=OUList.map(ou=>{
+                ou["nameSearch"]=ou.name+"("+ou.parent.parent["name"]+")"
+                return(ou)
+            })
+       
         this.setState({ OUList });
         return OUList;
     }
@@ -105,7 +112,7 @@ class EditOu extends React.Component {
         const uidOrgUnit = generateUid();
         const longitude=this.state.volunteer.villagegps.split(",")[1]*1
         const latitud=this.state.volunteer.villagegps.split(",")[0]*1
-
+        var disabledUser=false
         var OU = {
             id: uidOrgUnit,
             code: this.state.volunteer.code,
@@ -120,6 +127,7 @@ class EditOu extends React.Component {
         }
         if(this.state.volunteer.closedDate!="" && this.state.volunteer.closedDate!=undefined){
             OU["closedDate"]=this.state.volunteer.closedDate.getFullYear() + "-" + (this.state.volunteer.closedDate.getMonth() + 1) + "-" + this.state.volunteer.closedDate.getDate()
+            disabledUser=true
         }
         const User = {
             attributeValues: [],
@@ -137,7 +145,8 @@ class EditOu extends React.Component {
                 password: this.state.volunteer.password,
                 userInfo: { id: uidUser },
                 userRoles: [{ id: this.props.settingApp.userRole}],
-                username: this.state.volunteer.code              
+                username: this.state.volunteer.code,
+                disabled:disabledUser              
 
             },
             userGroups: [{ id: this.props.settingApp.userGroup }]//XCo6cPPctTl
@@ -155,7 +164,7 @@ class EditOu extends React.Component {
             }
             //assign OrganisationUnitGroups
             const respGrpuoAssigned = await D2API.setOrgUnitGroups(this.state.volunteer.supervisor, uidOrgUnit);
-                const respGrpuo2Assigned = await D2API.setOrgUnitGroups(this.props.subrecipient.id, uidOrgUnit);
+            const respGrpuo2Assigned = await D2API.setOrgUnitGroups(this.props.subrecipient.id, uidOrgUnit);
              //assign OU to program
              const FullProgram = await D2API.getProgram(this.props.settingApp.program); //status: "OK"
              FullProgram.organisationUnits.push({id:uidOrgUnit})
@@ -191,7 +200,15 @@ class EditOu extends React.Component {
     async upVolunteer() {
         const longitude=this.state.volunteer.villagegps.split(",")[1]*1
         const latitud=this.state.volunteer.villagegps.split(",")[0]*1
+        var disabledUser=false
+        const D2API = new DHIS2Api(this.props.d2);
+        //
         
+        const FullProgram = await D2API.getProgram(this.props.settingApp.program); //status: "OK"
+        FullProgram.organisationUnits.push({id:this.state.volunteer.ouid})
+        await D2API.setProgram(this.props.settingApp.program,FullProgram); //status: "OK"
+
+        //
         var OU = {
             id: this.state.volunteer.ouid,
             code: this.state.volunteer.code,
@@ -206,9 +223,10 @@ class EditOu extends React.Component {
         }
         if(this.state.volunteer.closedDate!="" && this.state.volunteer.closedDate!=undefined){
             OU["closedDate"]=this.state.volunteer.closedDate.getFullYear() + "-" + (this.state.volunteer.closedDate.getMonth() + 1) + "-" + this.state.volunteer.closedDate.getDate()
+            disabledUser=true
         }
        
-        const D2API = new DHIS2Api(this.props.d2);
+       
         let arrLen = ["en", "my", "zh"];
         const respOUSaved = await D2API.upOrgUnit(OU); //status: "OK"
         var respUserSaved=""
@@ -238,7 +256,8 @@ class EditOu extends React.Component {
                         password: this.state.volunteer.password,
                         userInfo: { id: uidUser },
                         userRoles: [{ id: this.props.settingApp.userRole}],
-                        username: this.state.volunteer.code              
+                        username: this.state.volunteer.code,
+                        disabled:disabledUser              
         
                     },
                     userGroups: [{ id: this.props.settingApp.userGroup }]//XCo6cPPctTl
@@ -251,6 +270,7 @@ class EditOu extends React.Component {
                 if( this.state.volunteer.password!=""){
                     userCredentials.password=this.state.volunteer.password
                 }
+                userCredentials.disabled=disabledUser
                 const User = {
                     attributeValues: [],
                     id: this.state.volunteer.userid,
@@ -456,7 +476,7 @@ class EditOu extends React.Component {
         if(this.props.volunterUser!=undefined){
             firstname = this.props.volunterUser.firstName;
             lastname = this.props.volunterUser.surname;
-            phoneNumber = this.props.volunterUser.phoneNumber == undefined ? "" : this.props.volunterUser.phoneNumber;
+            phoneNumber = this.props.volunterUser.phoneNumber == undefined || this.props.volunterUser.phoneNumber=="+95 " ? "" : this.props.volunterUser.phoneNumber;
             userid= this.props.volunterUser.id;
         }
         else{
@@ -612,7 +632,7 @@ class EditOu extends React.Component {
                 error = true;
             }
         }
-        if(this.state.volunteer.phoneNumber!=""){
+        if(this.state.volunteer.phoneNumber!="" && this.state.volunteer.phoneNumber!="+95 "){
             if(this.state.volunteer.phoneNumber.length<13 || this.state.volunteer.phoneNumber.length>16){
                 validateResult["phoneNumber"] = false;
                 error = true;
@@ -641,7 +661,7 @@ class EditOu extends React.Component {
     render() {
         const { d2 } = this.props;
         const dataSourceConfig = {
-            text: 'name',
+            text: 'nameSearch',
             value: 'id',
         };
         return (<div style={{position: 'relative'}}>
@@ -780,7 +800,7 @@ class EditOu extends React.Component {
                     /></aside>
                 <aside className="aside aside-13">         
                 <TextField  floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PHONE")} 
-                 value={this.state.volunteer.phoneNumber}
+                 value={this.state.volunteer.phoneNumber==""?"+95 ":this.state.volunteer.phoneNumber}
                  errorText={this.state.validateResult.phoneNumber == false ? "at least 9 digits and 12 digits max " : ""}
                  onChange={(event, value) => this.handleSetValueForm("phoneNumber", value, event)}
                     />
