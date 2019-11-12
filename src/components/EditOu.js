@@ -666,6 +666,10 @@ class EditOu extends React.Component {
             text: 'nameSearch',
             value: 'id',
         };
+        const dataSourceConfigVolunteer = {
+            text: 'name',
+            value: 'id',
+        };
         return (<div style={{position: 'relative'}}>
              {
              this.state.saving==true?
@@ -788,7 +792,7 @@ class EditOu extends React.Component {
                         hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
                         dataSource={this.state.OUGList}
                         //onUpdateInput={this.getSupervisor.bind(this)}
-                        dataSourceConfig={dataSourceConfig}
+                        dataSourceConfig={dataSourceConfigVolunteer}
                         filter={AutoComplete.fuzzyFilter}
                         floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_SUPERVISOR")}
                         onNewRequest={this.handleSupervisor.bind(this)}

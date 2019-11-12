@@ -201,7 +201,7 @@ class DHIS2Api{
         let url = "programs/"+uid+"?fields=organisationUnits"
         return await this.getResourceSelected(url)
     }
-    ///Eternal setting
+    ///Remote Server setting
 
     async SetResourceExternal(setting,url,method,body){    
         let headers = new Headers(); 
@@ -228,6 +228,14 @@ class DHIS2Api{
                 .catch(error => console.error('Error:', error));
         }
     /// setting OrgUnit
+    //get methods
+    async getExternalOrgUnit(setting,filter){
+        const resource=setting.remoteServer+"/api/"+"organisationUnits"
+        const param="fields=id,parent[id,name,parent[id,name,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
+        return await this.GetResourceExternal(setting,resource+"?"+param,'GET').then(res =>{      
+            return(res["organisationUnits"])
+        })
+    }
      //set methods
      async setExternalOrgUnit(setting,payload){
         const resource=setting.remoteServer+"/api/"+"organisationUnits"

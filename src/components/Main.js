@@ -75,6 +75,7 @@ class Main extends Component {
             countUser:-1,
             OUList: [],
             OUGList: [],
+            OURemoteList:[],
             UsersList:[],
             openEditOu: false,
             openSetting: false,
@@ -83,7 +84,8 @@ class Main extends Component {
             disabledSetting: false,
             openmsg:false,
             message:"",
-            searchByName:""
+            searchByName:"",
+            openMove:false
         }
     }
     async getSetting() {
@@ -112,6 +114,21 @@ class Main extends Component {
         }
         else{
             this.setState({ OUList,countUser:-1});
+        }
+
+    }
+    
+    async getOrgUnit_RemoteServer(filter,filter2) {
+        const D2API = new DHIS2Api(this.props.d2);
+        var OURemoteList=[] 
+        if(filter2==undefined)
+            filter2=this.state.searchByName  
+        if(filter2.length>=2){
+            OURemoteList = await D2API.getExternalOrgUnit(this.state.settingApp,"&filter=organisationUnitGroups.id:eq:" + filter+"&query="+filter2+"&pageSize=25");        
+            this.setState({ OURemoteList});
+        }
+        else{
+            this.setState({ OURemoteList});
         }
 
     }
@@ -162,11 +179,27 @@ class Main extends Component {
         }
            
       }
+      checkOrgUnit(ou){
+          const value=this.state.OURemoteList.find(ouEx=>{
+              return ouEx.id==ou.id
+          })
+        if(value==undefined)
+            return red500
+        else{
+           
+          return green500
+        }
+           
+      }
 
     handleSetValueForm(key, value, event, index) {
         this.setState({searchByName:value})
         this.getOrgUnit(this.state.volunteer.orgUnitGroups[0].id, value);
         this.getUsers(value);
+        if(this.state.settingApp.modeSetting=="Local_and_remote"){
+            this.getOrgUnit_RemoteServer(this.state.volunteer.orgUnitGroups[0].id, value)
+        }
+
         
     }
     handleOpenVolunteer(OUSelected) {
@@ -268,7 +301,7 @@ class Main extends Component {
               open={this.state.openMove}
               onRequestClose={()=>this.setState({openMove: false})}
             >
-              Dear user, this option isn't available 
+              It is not possible to move a volunteer. You should disable the account and create another one for the new SR. This is done to preserve the historical data.
             </Dialog>
           )
     }
@@ -326,7 +359,7 @@ class Main extends Component {
             return (
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus /></TableRowColumn>
+                    <TableRowColumn className="colMiddle"><FlagStatus color={this.state.settingApp.modeSetting=="Local_and_remote"?this.checkOrgUnit(ou):""} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus color={this.checkUser(ou,user)} /></TableRowColumn>
                     <TableRowColumn className="colMiddle"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
                     <TableRowColumn className="colEnd"> {user==undefined?"":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>                  
