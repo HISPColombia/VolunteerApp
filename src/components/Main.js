@@ -61,6 +61,7 @@ const localStyle = {
 class Main extends Component {
     constructor(props) {
         super(props)
+        
         this.state = {
             volunteer: {
                 id: "",
@@ -71,7 +72,7 @@ class Main extends Component {
                 orgUnitGroups: [{ id: "" }],
                 lastUpdated: ""
             },
-            countUser:0,
+            countUser:-1,
             OUList: [],
             OUGList: [],
             UsersList:[],
@@ -105,9 +106,14 @@ class Main extends Component {
         var OUList=[] 
         if(filter2==undefined)
             filter2=this.state.searchByName  
-        if(filter2.length>=2)
-            OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&filter=name:like:"+filter2+"&pageSize=25");        
-        this.setState({ OUList,countUser:(OUList==undefined?0:OUList.length)});
+        if(filter2.length>=2){
+            OUList = await D2API.getOrgUnit("&filter=organisationUnitGroups.id:eq:" + filter+"&query="+filter2+"&pageSize=25");        
+            this.setState({ OUList,countUser:(OUList==undefined?0:OUList.length)});
+        }
+        else{
+            this.setState({ OUList,countUser:-1});
+        }
+
     }
     async getUsers(filter){
         const D2API = new DHIS2Api(this.props.d2);
@@ -307,6 +313,13 @@ class Main extends Component {
 
     renderOUTable() {
         const OUList = this.state.OUList
+        if(OUList.length==0){
+            return (
+                <TableRow className="col-hide" key={"OU1"}>
+                     <TableRowColumn className="colIni" style={{textAlign:'center', color:'red'}} colSpan={6} >{this.state.countUser==-1?"To display volunteers, enter a search criteria above":"There are no user that match ["+this.state.searchByName+"] in the subrecipient. Try a different subrecipient"}</TableRowColumn>
+                </TableRow>
+            )
+        }
         return OUList.map(ou => {
             const user=this.findUser(ou.code);
             const ouExist=this.findOUinProgram(ou.id)
@@ -356,7 +369,7 @@ class Main extends Component {
                             {this.renderSubrecipient()}
                         </SelectField>
                         <Badge
-                            badgeContent={this.state.countUser}
+                            badgeContent={this.state.countUser==-1?0:this.state.countUser}
                             primary={true}
                             badgeStyle={{ top: -8, right: 0, width: 36, height: 36 }}
                         >
@@ -368,6 +381,7 @@ class Main extends Component {
                         hintText="Type the name of the volunteer here"
                         floatingLabelText="Search for a Volunteer"
                         fullWidth={true}
+                        autoFocus 
                         value={this.state.searchByName}
                         onChange={(event, value) => this.handleSetValueForm("searchByName", value, event)}
 

@@ -160,7 +160,7 @@ class EditOu extends React.Component {
                const respoExternalOUSaved = await D2API.setExternalOrgUnit(this.props.settingApp,OU)
                const respGrpuoAssigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.state.volunteer.supervisor, uidOrgUnit);
                const respGrpuo2Assigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.props.subrecipient.id, uidOrgUnit);
-               console.log(respoExternalOUSaved)
+               this.props.handleMessagesApp("The volunteer has been created on Remote Server")
             }
             //assign OrganisationUnitGroups
             const respGrpuoAssigned = await D2API.setOrgUnitGroups(this.state.volunteer.supervisor, uidOrgUnit);
@@ -171,6 +171,7 @@ class EditOu extends React.Component {
              await D2API.setProgram(this.props.settingApp.program,FullProgram); //status: "OK"
              if(this.props.settingApp.modeSetting=="Local_and_remote"){
                  await D2API.setExernalProgram(this.props.settingApp,this.props.settingApp.program,FullProgram)
+                 
              }
             const respUserSaved = await D2API.setUser(User);
             if (respUserSaved.status == "OK") {
@@ -235,6 +236,7 @@ class EditOu extends React.Component {
             //externalServer
             if(this.props.settingApp.modeSetting=="Local_and_remote"){
                 const respoExternalOUSaved = await D2API.upExternalOrgUnit(this.props.settingApp,OU)
+                this.props.handleMessagesApp("The volunteer has been updated on Remote Server")
              }
 
             if(this.state.lackUser){
@@ -673,18 +675,22 @@ class EditOu extends React.Component {
              }
             {this.state.lackUser==true?<div title={"Error, user doesn't exist"} style={{position:'absolute',top:0,left:'90%'}}><ErrorIcon color={red500}/></div>:""}
             <div className="wrapper" style={localstyle.divForm}>
-                <aside className="aside aside-1"><AutoComplete
-                    hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
-                    dataSource={this.state.OUList}
-                    onUpdateInput={this.searchParents.bind(this)}
-                    dataSourceConfig={dataSourceConfig}
-                    filter={AutoComplete.fuzzyFilter}
-                    floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
-                    onNewRequest={this.handleParent.bind(this)}
-                    errorText={this.state.OUList.length > 0 || this.state.disabled ? (this.state.subCenterError==true?"Error in Code, Select a valid Sub/Center":"") : "No match"}
-                    searchText={this.state.volunteer.parentName}
-                    disabled={this.state.disabled}
-                /></aside>
+                <div style={{maxWidth:560}}>
+                <aside className="aside aside-1"></aside>
+                    <AutoComplete
+                        hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
+                        dataSource={this.state.OUList}
+                        onUpdateInput={this.searchParents.bind(this)}
+                        dataSourceConfig={dataSourceConfig}
+                        filter={AutoComplete.fuzzyFilter}
+                        floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
+                        onNewRequest={this.handleParent.bind(this)}
+                        errorText={this.state.OUList.length > 0 || this.state.disabled ? (this.state.subCenterError==true?"Error in Code, Select a valid Sub/Center":"") : "No match"}
+                        searchText={this.state.volunteer.parentName}
+                        disabled={this.state.disabled}
+                        fullWidth={true}
+                    />
+                </div>
                 <aside className="aside aside-2">
                     <TextField
                         floatingLabelText={d2.i18n.getTranslation("LABEL_VOLUNTEER_CODE")}
