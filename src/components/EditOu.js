@@ -127,7 +127,8 @@ class EditOu extends React.Component {
         }
         if(this.state.volunteer.closedDate!="" && this.state.volunteer.closedDate!=undefined){
             OU["closedDate"]=this.state.volunteer.closedDate.getFullYear() + "-" + (this.state.volunteer.closedDate.getMonth() + 1) + "-" + this.state.volunteer.closedDate.getDate()
-            disabledUser=true
+            if(this.state.volunteer.closedDate<currentDate)
+                disabledUser=true
         }
         const User = {
             attributeValues: [],
@@ -224,7 +225,9 @@ class EditOu extends React.Component {
         }
         if(this.state.volunteer.closedDate!="" && this.state.volunteer.closedDate!=undefined){
             OU["closedDate"]=this.state.volunteer.closedDate.getFullYear() + "-" + (this.state.volunteer.closedDate.getMonth() + 1) + "-" + this.state.volunteer.closedDate.getDate()
-            disabledUser=true
+            const currentDate= new Date()
+            if(this.state.volunteer.closedDate<currentDate)
+                disabledUser=true
         }
        
        
