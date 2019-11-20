@@ -70,6 +70,13 @@ class DHIS2Api{
         return result;
     }
     //get methods
+    async getCurrentUser(){
+        const resource="me"
+        const param="fields=id,userGroups"
+        return await this.getResourceSelected(resource,param).then(res =>{           
+            return(res)
+        })
+    }
     async getOrgUnit(filter){
         const resource="organisationUnits"
         const param="fields=id,parent[id,name,parent[id,name,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
@@ -87,7 +94,7 @@ class DHIS2Api{
     }
     async getOrgUnitGroups(filter){
         const resource="organisationUnitGroupSets"
-        const param="fields=organisationUnitGroups[id,name,code]"+(filter==undefined?"":filter)
+        const param="fields=organisationUnitGroups[id,name,code,userGroupAccesses[id],userAccesses[id]]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })

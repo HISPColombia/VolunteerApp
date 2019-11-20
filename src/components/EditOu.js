@@ -71,10 +71,12 @@ class EditOu extends React.Component {
         //get list of OU leve 6
         const D2API = new DHIS2Api(this.props.d2);
         var OUList=[]
+        if(value.split(" (").length>0)
+            value=value.split(" (")[0]
         OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:ilike:" + value);
         if(OUList!=undefined)
             OUList=OUList.map(ou=>{
-                ou["nameSearch"]=ou.name+"("+ou.parent.parent["name"]+")"
+                ou["nameSearch"]=ou.name+" ("+ou.parent.parent["name"]+")"
                 return(ou)
             })
        
@@ -404,10 +406,10 @@ class EditOu extends React.Component {
         else{
             if (children.length > 0) {
                 let partFinal = "000000" + children.length;
-                return (subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + townCode.substring(townCode.length - 6, townCode.length) + "_" + partFinal.substring(partFinal.length - 6, partFinal.length));
+                return (townCode.substring(townCode.length - 6, townCode.length) + "_" + subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + partFinal.substring(partFinal.length - 6, partFinal.length));
             }
             else {
-                return (subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + townCode.substring(townCode.length - 6, townCode.length) + "_00001");
+                return (townCode.substring(townCode.length - 6, townCode.length)+"_"+ subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_00001");
             }
         }
 
@@ -673,6 +675,7 @@ class EditOu extends React.Component {
             text: 'name',
             value: 'id',
         };
+
         return (<div style={{position: 'relative'}}>
              {
              this.state.saving==true?

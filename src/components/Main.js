@@ -93,10 +93,19 @@ class Main extends Component {
         const settingApp = await D2API.getSetting();
         this.setState({settingApp });  
     }
+    async getCurrentUser(){
+        const D2API = new DHIS2Api(this.props.d2);
+        return await D2API.getCurrentUser();
+        //this.setState({currentUser});
+    }
     async getSubRecipient(subrecipient) {
         const D2API = new DHIS2Api(this.props.d2);
         const OUGList = await D2API.getOrgUnitGroups("&filter=id:eq:" + this.state.settingApp.subrecipient);
-        this.setState({ OUGList:OUGList[0].organisationUnitGroups});
+        const currentUser= await this.getCurrentUser()
+
+        var nOUGListGroup=OUGList[0].organisationUnitGroups.filter(ougs=>ougs.userGroupAccesses.find(usg=>currentUser.userGroups.find(curg=>usg.id==curg.id)))
+        var nOUGList=OUGList[0].organisationUnitGroups.filter(oug=>oug.userAccesses.find(usA=>usA.id==currentUser.id))
+        this.setState({ OUGList:nOUGListGroup.concat(nOUGList)});
         if(subrecipient==undefined)
             this.handleSelectSubrecipient("","",this.state.OUGList[0])
         else
