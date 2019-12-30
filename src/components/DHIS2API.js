@@ -240,7 +240,10 @@ class DHIS2Api{
         const resource=setting.remoteServer+"/api/"+"organisationUnits"
         const param="fields=id,parent[id,name,parent[id,name,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
         return await this.GetResourceExternal(setting,resource+"?"+param,'GET').then(res =>{      
-            return(res["organisationUnits"])
+            if(res!=undefined)
+                return(res["organisationUnits"])
+            else
+                return([])
         })
     }
      //set methods

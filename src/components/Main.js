@@ -20,6 +20,7 @@ import PersonEdit from 'material-ui/svg-icons/image/edit';
 import PersonMove from 'material-ui/svg-icons/action/swap-vert';
 import SettingsIcon from 'material-ui/svg-icons/action/settings';
 import PersonDisabled from 'material-ui/svg-icons/content/block';
+import PersonEnabled from 'material-ui/svg-icons/content/add';
 import HelpIconMenu from 'material-ui/svg-icons/action/help-outline';
 import FlagStatus from 'material-ui/svg-icons/av/fiber-manual-record';
 import SelectField from 'material-ui/SelectField';
@@ -29,6 +30,7 @@ import ContentAdd from 'material-ui/svg-icons/content/add';
 import Snackbar from 'material-ui/Snackbar';
 import {red500,grey500,green500,yellow500} from 'material-ui/styles/colors';
 import RaisedButton from 'material-ui/RaisedButton';
+import CircularProgress from 'material-ui/CircularProgress';
 
 //My Components
 import EditOu from './EditOu';
@@ -85,7 +87,8 @@ class Main extends Component {
             openmsg:false,
             message:"",
             searchByName:"",
-            openMove:false
+            openMove:false,
+            saving:false
         }
     }
     async getSetting() {
@@ -179,12 +182,26 @@ class Main extends Component {
             return red500
         else{
             if(user.userCredentials.disabled==true && ou.closedDate!="")
-                return grey500
+                return yellow500
             else
                 if((user.userCredentials.disabled==true && ou.closedDate==undefined)||(user.userCredentials.disabled==false && ou.closedDate!=undefined))
-                    return yellow500
+                    return grey500
                 else
                     return green500
+        }
+           
+      }
+      checkDisabled(ou,user){
+         if(user==undefined)
+            return undefined
+        else{
+            if(user.userCredentials.disabled==true && ou.closedDate!="")
+                return true
+            else
+                if((user.userCredentials.disabled==true && ou.closedDate==undefined)||(user.userCredentials.disabled==false && ou.closedDate!=undefined))
+                    return true
+                else
+                    return false
         }
            
       }
@@ -316,6 +333,7 @@ class Main extends Component {
     }
 
     async disabledVolunteer(user,ou){
+        this.setState({saving:true})
         const D2API = new DHIS2Api(this.props.d2);
         if(user==undefined){
             this.setState({openmsg:true,message:"Warinig, User does't available"})
@@ -325,14 +343,45 @@ class Main extends Component {
         var f = new Date();
         ou["closedDate"]= f;
         const respOUSaved = await D2API.upOrgUnit(ou); //status: "OK"
+         //externalServer
+         if(this.state.settingApp.modeSetting=="Local_and_remote"){
+            const respoExternalOUSaved = await D2API.upExternalOrgUnit(this.state.settingApp,ou)
+         }
         if (respOUSaved.status != "OK") {
-            this.setState({openmsg:true,message:"Error disabling volunteer, check the OrgUnit"})
+            this.setState({openmsg:true,saving:false,message:"Error disabling volunteer, check the OrgUnit"})
         }
         else{
-            this.setState({openmsg:true,message:"Volunteer sucessfully disabled"})
+            this.handleSetValueForm(undefined,this.state.searchByName,undefined,undefined)
+            this.setState({openmsg:true,saving:false,message:"Volunteer sucessfully disabled"})
+
         }
 
     }
+    async enabledVolunteer(user,ou){
+        this.setState({saving:true})
+        const D2API = new DHIS2Api(this.props.d2);
+        if(user==undefined){
+            this.setState({openmsg:true,message:"Warinig, User does't available"})
+        }else{                  
+            const respUser=await D2API.disabledUser(user.id,{userCredentials: {disabled: false}})
+        }
+        var f = new Date();
+        delete ou["closedDate"]
+         const respOUSaved = await D2API.upOrgUnit(ou); //status: "OK"
+         //externalServer
+         if(this.state.settingApp.modeSetting=="Local_and_remote"){
+            const respoExternalOUSaved = await D2API.upExternalOrgUnit(this.state.settingApp,ou)
+           }
+        if (respOUSaved.status != "OK") {
+            this.setState({openmsg:true,saving:false,message:"Error enabling volunteer, check the OrgUnit"})
+        }
+        else{
+            this.handleSetValueForm(undefined,this.state.searchByName,undefined,undefined)
+            this.setState({openmsg:true,saving:false,message:"Volunteer sucessfully enabled"})
+        }
+
+    }
+
 
     renderDialogSettingsSr() {
         const D2API = new DHIS2Api(this.props.d2);
@@ -365,6 +414,7 @@ class Main extends Component {
         return OUList.map(ou => {
             const user=this.findUser(ou.code);
             const ouExist=this.findOUinProgram(ou.id)
+            const isDisabled=this.checkDisabled(ou,user)
             return (
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
@@ -380,7 +430,7 @@ class Main extends Component {
                         >
                             <MenuItem primaryText="Edit" leftIcon={<PersonEdit />} onClick={() => this.handleOpenVolunteer(ou)} />
                             <MenuItem primaryText="Move" leftIcon={<PersonMove />} onClick={()=>this.setState({openMove: true})}/>
-                            <MenuItem primaryText="Disabled" leftIcon={<PersonDisabled />}  onClick={()=>this.disabledVolunteer(user,ou)}/>
+                            {isDisabled==false?<MenuItem primaryText="Disabled" leftIcon={<PersonDisabled />}  onClick={()=>this.disabledVolunteer(user,ou)}/>:<MenuItem primaryText="Enabled" leftIcon={<PersonEnabled />}  onClick={()=>this.enabledVolunteer(user,ou)}/>}
                         </IconMenu>
                     </TableRowColumn>
                 </TableRow>
@@ -400,6 +450,12 @@ class Main extends Component {
 
         return (
             <div className='contMain'>
+                             {
+             this.state.saving==true?
+             <div style={{position: 'absolute',left: '45%', top: '45%', zIndex: 1}}>
+                 <CircularProgress size={80} thickness={5} />
+            </div>:""
+             }
                 <div className='barApp'>
                     <div className='barAppLeft'>
                         <SelectField

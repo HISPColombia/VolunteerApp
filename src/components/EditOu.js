@@ -68,6 +68,10 @@ class EditOu extends React.Component {
         this.setState({ OUList });
     }
     async searchParents(value) {
+        //clear value while select one 
+        var volunteer=this.state.volunteer
+        volunteer["code"] = "";
+        this.setState({volunteer})
         //get list of OU leve 6
         const D2API = new DHIS2Api(this.props.d2);
         var OUList=[]
@@ -384,18 +388,18 @@ class EditOu extends React.Component {
         let volunteer = this.state.volunteer
         //get OU Level 4
         if (this.props.subrecipient.code == undefined || chosenRequest.parent.parent.code == undefined){
-            this.setState({ saving: true,subCenterError:true })
+            this.setState({ saving: true,subCenterError:true})
+        
             
         }
         else  {
             this.setState({ saving: false,subCenterError:false })
         }
-
         let code = this.generateCode(this.props.subrecipient.code, chosenRequest.parent.parent.code, chosenRequest.children)
         //
         volunteer["parent"] = chosenRequest.id;
         volunteer["email"] = chosenRequest.parent.parent.email == undefined ? "" : chosenRequest.parent.parent.email;
-        volunteer["code"] = code;
+        volunteer["code"] = code;        
         this.setState({ volunteer });
         this.setFullname();
     }
@@ -853,7 +857,7 @@ class EditOu extends React.Component {
                     primary={true}
                     keyboardFocused={true}
                     style={localstyle.buttons}
-                    disabled={this.state.saving}
+                    disabled={this.state.saving || this.state.volunteer.code==""}
                     onClick={() => this.validateForm(false)}
                 />
             </div>
