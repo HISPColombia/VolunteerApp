@@ -78,12 +78,16 @@ body{
     z-index: 998!important;
 }
 .col-hide:hover{background-color: #E4E4E4;cursor:pointer;}
-.colIniHeader{width:22%;}
-.colMiddleHeader{width:10%;}
-.colEndHeader{width:20%}
-.colEditHeader{width:10%;}
+.colIniHeader{width:40%; text-align: left !important}
+.colMiddleHeader1{width:10%; text-align: left !important}
+.colMiddleHeader2{width:10%; text-align: left !important}
+.colMiddleHeader3{width:15%; text-align: left !important}
+.colEndHeader{width:15%; text-align: left !important}
+.colEditHeader{width:10%; text-align: left !important}
 
-.colIni{width:30%;}
-.colMiddle{width:10%;}
-.colEnd{width:20%}
-.colEdit{width:10%;}
+.colIni{width:40%}
+.colMiddle1{width:10%;  text-align: center !important}
+.colMiddle2{width:10%;  text-align: center !important}
+.colMiddle3{width:15%;  text-align: center !important}
+.colEnd{width:15%; text-align: left !important}
+.colEdit{width:10%; text-align: left !important}

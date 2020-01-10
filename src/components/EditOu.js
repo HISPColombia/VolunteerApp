@@ -83,7 +83,6 @@ class EditOu extends React.Component {
                 ou["nameSearch"]=ou.name+" ("+ou.parent.parent["name"]+")"
                 return(ou)
             })
-       
         this.setState({ OUList });
         return OUList;
     }
@@ -167,7 +166,7 @@ class EditOu extends React.Component {
                const respoExternalOUSaved = await D2API.setExternalOrgUnit(this.props.settingApp,OU)
                const respGrpuoAssigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.state.volunteer.supervisor, uidOrgUnit);
                const respGrpuo2Assigned = await D2API.setExernalOrgUnitGroups(this.props.settingApp,this.props.subrecipient.id, uidOrgUnit);
-               this.props.handleMessagesApp("The volunteer has been created on Remote Server")
+               this.props.handleMessagesApp("Remote Volunteers Org Unit creation in "+this.props.settingApp.remoteServer+ " requested.")
             }
             //assign OrganisationUnitGroups
             const respGrpuoAssigned = await D2API.setOrgUnitGroups(this.state.volunteer.supervisor, uidOrgUnit);
@@ -245,7 +244,7 @@ class EditOu extends React.Component {
             //externalServer
             if(this.props.settingApp.modeSetting=="Local_and_remote"){
                 const respoExternalOUSaved = await D2API.upExternalOrgUnit(this.props.settingApp,OU)
-                this.props.handleMessagesApp("The volunteer has been updated on Remote Server")
+                this.props.handleMessagesApp("Remote Volunteers Org Unit creation in "+this.props.settingApp.remoteServer+ " requested.")
              }
 
             if(this.state.lackUser){
@@ -395,7 +394,7 @@ class EditOu extends React.Component {
         else  {
             this.setState({ saving: false,subCenterError:false })
         }
-        let code = this.generateCode(this.props.subrecipient.code, chosenRequest.parent.parent.code, chosenRequest.children)
+        let code = this.generateCode(this.props.subrecipient.code, chosenRequest.parent.parent.code, chosenRequest.children,chosenRequest.parent.parent)
         //
         volunteer["parent"] = chosenRequest.id;
         volunteer["email"] = chosenRequest.parent.parent.email == undefined ? "" : chosenRequest.parent.parent.email;
@@ -403,18 +402,48 @@ class EditOu extends React.Component {
         this.setState({ volunteer });
         this.setFullname();
     }
-    generateCode(subrecipientCode, townCode, children) {
+    getLastCodeGenerated(ouChildren){
+        var lastCode=0;
+        ouChildren.forEach(ou5 => {
+            if(ou5.children.length>0)
+                ou5.children.forEach(ou6 => {
+                    if(ou6.children.length>0)
+                        ou6.children.forEach(ou7 => {
+                             try{
+                                var code=ou7.code.split("_");
+                                if(code.length==3){
+                                    if(isNaN(code[0]*1)==false && isNaN(code[1]*1)==false && isNaN(code[2]*1)==false){
+                                        var currentCode=code[code.length-1]*1
+                                        if(isNaN(currentCode))
+                                            currentCode=0
+                                        if(currentCode>lastCode)
+                                            lastCode=currentCode;
+                                    }
+                                }
+                            }catch(err){
+                                console.info("Ou without Code")
+                            }
+                            
+                           
+                        });  
+                }); 
+        });
+        return (lastCode);
+    }
+    generateCode(subrecipientCode, townCode, children,town) {
+        var lastCode=this.getLastCodeGenerated(town.children)
         if(subrecipientCode==undefined || townCode==undefined){
             return ("");
         }
         else{
-            if (children.length > 0) {
-                let partFinal = "000000" + children.length;
+            //if (children.length > 0) {
+                //let partFinal = "000000" + (children.length*1+1);
+                let partFinal = "000000" + (lastCode*1+1);                
                 return (townCode.substring(townCode.length - 6, townCode.length) + "_" + subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_" + partFinal.substring(partFinal.length - 6, partFinal.length));
-            }
-            else {
-                return (townCode.substring(townCode.length - 6, townCode.length)+"_"+ subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_00001");
-            }
+            //}
+            //else {
+            //    return (townCode.substring(townCode.length - 6, townCode.length)+"_"+ subrecipientCode.substring(subrecipientCode.length-2,subrecipientCode.length) + "_00001");
+            //}
         }
 
     }

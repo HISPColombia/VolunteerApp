@@ -79,7 +79,7 @@ class DHIS2Api{
     }
     async getOrgUnit(filter){
         const resource="organisationUnits"
-        const param="fields=id,parent[id,name,parent[id,name,code, email]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
+        const param="fields=id,parent[id,name,parent[id,name,code, email,children[children[children[code]]]]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
         return await this.getResourceSelected(resource,param).then(res =>{           
             return(res[resource])
         })
@@ -249,7 +249,8 @@ class DHIS2Api{
      //set methods
      async setExternalOrgUnit(setting,payload){
         const resource=setting.remoteServer+"/api/"+"organisationUnits"
-        return await this.SetResourceExternal(setting,resource,"POST",JSON.stringify(payload)).then(res =>{           
+        return await this.SetResourceExternal(setting,resource,"POST",JSON.stringify(payload)).then(res =>{  
+                  
             return(res)
         })
     }

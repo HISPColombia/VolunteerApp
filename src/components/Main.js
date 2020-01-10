@@ -418,9 +418,9 @@ class Main extends Component {
             return (
                 <TableRow className="col-hide" key={ou.id}>
                     <TableRowColumn className="colIni">{ou.name}</TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={this.state.settingApp.modeSetting=="Local_and_remote"?this.checkOrgUnit(ou):""} /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={this.checkUser(ou,user)} /></TableRowColumn>
-                    <TableRowColumn className="colMiddle"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
+                    <TableRowColumn className="colMiddle1"><FlagStatus color={this.state.settingApp.modeSetting=="Local_and_remote"?this.checkOrgUnit(ou):""} /></TableRowColumn>
+                    <TableRowColumn className="colMiddle2"><FlagStatus color={this.checkUser(ou,user)} /></TableRowColumn>
+                    <TableRowColumn className="colMiddle3"><FlagStatus color={ouExist==undefined?red500:green500} /></TableRowColumn>
                     <TableRowColumn className="colEnd"> {user==undefined?"":(user.userCredentials.lastLogin==undefined?"Not logged yet":user.userCredentials.lastLogin)}</TableRowColumn>                  
                     <TableRowColumn className="colEdit">
                         <IconMenu
@@ -502,11 +502,11 @@ class Main extends Component {
                         <TableHeader displaySelectAll={false} className='titleTable'>
                             <TableRow>
                                 <TableHeaderColumn className="colIniHeader">Volunteer</TableHeaderColumn>
-                                <TableHeaderColumn className="colMiddleHeader">Remote OU</TableHeaderColumn>
-                                <TableHeaderColumn className="colMiddleHeader">User account</TableHeaderColumn>
-                                <TableHeaderColumn className="colMiddleHeader">Associated to program</TableHeaderColumn>
+                                <TableHeaderColumn className="colMiddleHeader1">Remote OU</TableHeaderColumn>
+                                <TableHeaderColumn className="colMiddleHeader2">User account</TableHeaderColumn>
+                                <TableHeaderColumn className="colMiddleHeader3">Associated to program</TableHeaderColumn>
                                 <TableHeaderColumn className="colEndHeader">Last login</TableHeaderColumn>                             
-                                <TableHeaderColumn className="colEditHeader"></TableHeaderColumn>
+                                <TableHeaderColumn className="colEditHeader">Edit</TableHeaderColumn>
                             </TableRow>
                         </TableHeader>
                         <TableBody displayRowCheckbox={false}>
