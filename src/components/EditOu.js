@@ -15,6 +15,8 @@ import CircularProgress from 'material-ui/CircularProgress';
 import ErrorIcon from 'material-ui/svg-icons/alert/error';
 import '../css/Volunteer.css';
 import { red500 } from 'material-ui/styles/colors';
+import AutoCompleteList from './Autocomplete'
+
 const localstyle = {
     divForm: { overflowY: 'auto', height: 300 },
     buttonsPanel: { paddingTop: 40, textAlign: "center" },
@@ -44,7 +46,7 @@ class EditOu extends React.Component {
                 repeatpassword: "",
                 language: "",
             },
-            OUList: [],
+            OUList: {organisationUnits:[]},
             OUGList: [],
             validateResult: { parent: true, village: true, villagegps: true, villagegps: true, firstname: true, lastname: true, password: true, repeatpassword: true, language: true, openingDate: true },
             validation: false,
@@ -61,14 +63,14 @@ class EditOu extends React.Component {
             open: false,
         });
     };
-    async getParthers() {
-        //get list of OU leve 6
-        const D2API = new DHIS2Api(this.props.d2);
-        const OUList = await D2API.getOrgUnit("&filter=level:eq:6&paging=false");
-        this.setState({ OUList });
-    }
-    async searchParents(value) {
-        //clear value while select one 
+    // async getParthers() {
+    //     //get list of OU leve 6
+    //     const D2API = new DHIS2Api(this.props.d2);
+    //     const OUList = await D2API.getOrgUnit("&filter=level:eq:6&paging=false");
+    //     this.setState({ OUList });
+    // }
+    async searchParents(value,page) {
+         //clear value while select one 
         var volunteer=this.state.volunteer
         volunteer["code"] = "";
         this.setState({volunteer})
@@ -77,12 +79,16 @@ class EditOu extends React.Component {
         var OUList=[]
         if(value.split(" (").length>0)
             value=value.split(" (")[0]
-        OUList = await D2API.getOrgUnit("&pageSize=5&filter=level:eq:6&filter=name:ilike:" + value);
-        if(OUList!=undefined)
-            OUList=OUList.map(ou=>{
-                ou["nameSearch"]=ou.name+" ("+ou.parent.parent["name"]+")"
-                return(ou)
-            })
+            if(page==undefined)
+                OUList = await D2API.getOrgUnitFull("&filter=level:eq:6&filter=name:ilike:" + value);
+            else
+                OUList = await D2API.getOrgUnitFull("&filter=level:eq:6&filter=name:ilike:"+value+"&page="+page);
+
+        // if(OUList!=undefined)
+        //     OUList=OUList.map(ou=>{
+        //         ou["nameSearch"]=ou.name+" ("+ou.parent.parent["name"]+")"
+        //         return(ou)
+        //     })
         this.setState({ OUList });
         return OUList;
     }
@@ -384,6 +390,7 @@ class EditOu extends React.Component {
         }
     }
     handleParent(chosenRequest, index) {
+        
         let volunteer = this.state.volunteer
         //get OU Level 4
         if (this.props.subrecipient.code == undefined || chosenRequest.parent.parent.code == undefined){
@@ -720,7 +727,17 @@ class EditOu extends React.Component {
             <div className="wrapper" style={localstyle.divForm}>
                 <div style={{maxWidth:560}}>
                 <aside className="aside aside-1"></aside>
-                    <AutoComplete
+                    <AutoCompleteList
+                    d2={d2}
+                    OUList={this.state.OUList}
+                    onUpdateInput={this.searchParents.bind(this)}
+                    dataSourceConfig={dataSourceConfig}
+                    onNewRequest={this.handleParent.bind(this)}
+                    disabled={this.state.disabled} 
+                    subCenterError={this.state.subCenterError}
+                    searchText={this.state.volunteer.parentName}                    
+                    />
+                    {/* <AutoComplete
                         hintText={d2.i18n.getTranslation("LABEL_VOLUNTEER_PARENT") + " *"}
                         dataSource={this.state.OUList}
                         onUpdateInput={this.searchParents.bind(this)}
@@ -732,7 +749,9 @@ class EditOu extends React.Component {
                         searchText={this.state.volunteer.parentName}
                         disabled={this.state.disabled}
                         fullWidth={true}
-                    />
+                        maxSearchResults={10}
+                        listStyle={{height: 200,overflowY: "scroll"}}
+                    /> */}
                 </div>
                 <aside className="aside aside-2">
                     <TextField

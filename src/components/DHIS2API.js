@@ -84,6 +84,13 @@ class DHIS2Api{
             return(res[resource])
         })
     }
+    async getOrgUnitFull(filter){
+        const resource="organisationUnits"
+        const param="fields=id,parent[id,name,parent[id,name,code, email,children[children[children[code]]]]],children[id,code],code,level,name,shortName,coordinates,openingDate,closedDate,phoneNumber,email,organisationUnitGroups[id,code,name]"+(filter==undefined?"":filter)
+        return await this.getResourceSelected(resource,param).then(res =>{           
+            return(res)
+        })
+    }
     async getOrgUnitGroup(filter) {
         const resource = "organisationUnitGroups"	        // code en la Unidad Organizativa igual que el name del usuario
         const param = "fields=id,name,user,organisationUnits" + (filter == undefined ? "" : filter)	        // name de la Unidad ORganizativa es igual que firtName, Surname del usuario
